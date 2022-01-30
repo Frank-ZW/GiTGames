@@ -1,0 +1,10 @@
+connection-settings:
+  plugin:
+    port: 9048
+servers:
+  lobby:
+    - lobby
+  minigame:
+    - mini1A
+  fallback:
+    - lobby

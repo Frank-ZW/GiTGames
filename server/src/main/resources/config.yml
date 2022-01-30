@@ -1,0 +1,16 @@
+connection-settings:
+  server:
+    name: lobby
+    host: "localhost"
+    port: 25561
+  plugin:
+    host: "localhost"
+    port: 9048
+
+lobby-location:
+  world-name: world
+  x-value: 0
+  y-value: -1
+  z-value: 0
+  yaw: 0.0
+  pitch: 0.0
