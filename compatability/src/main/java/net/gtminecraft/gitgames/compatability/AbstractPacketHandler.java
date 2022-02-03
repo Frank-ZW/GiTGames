@@ -13,4 +13,6 @@ public abstract class AbstractPacketHandler {
 	public void handle(PacketPlayerQueue packet) throws Exception {}
 	public void handle(PacketServerAction packet) throws Exception {}
 	public void handle(PacketCreateGame packet) throws Exception {}
+	public void handle(PacketPlayerDataUpdate packet) throws Exception {}
+	public void handle(PacketPlayerDisconnect packet) throws Exception {}
 }

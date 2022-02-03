@@ -14,7 +14,7 @@ public class PreparationState extends GameState {
 	private boolean success = false;
 
 	public PreparationState(MinigameManager minigameManager) {
-		super(minigameManager, GameStateUtils.PREPARATION_STATE_PRIORITY);
+		super(minigameManager, GameStateUtils.PREPARATION_STATE_PRIORITY, null);
 	}
 
 	@Override

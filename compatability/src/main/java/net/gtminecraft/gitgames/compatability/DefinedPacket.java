@@ -88,7 +88,7 @@ public abstract class DefinedPacket {
 	public static List<Integer> readVarIntList(ByteBuf input) {
 		int length = DefinedPacket.readVarInt(input);
 		List<Integer> list = new ArrayList<>(length);
-		for(int i = 0; i < length; ++i) {
+		for(int i = 0; i < length; i++) {
 			list.add(DefinedPacket.readVarInt(input));
 		}
 
@@ -98,7 +98,7 @@ public abstract class DefinedPacket {
 	public static int[] readVarIntArray(ByteBuf input) {
 		int length = DefinedPacket.readVarInt(input);
 		int[] array = new int[length];
-		for(int i = 0; i < length; ++i) {
+		for(int i = 0; i < length; i++) {
 			array[i] = DefinedPacket.readVarInt(input);
 		}
 
@@ -129,7 +129,7 @@ public abstract class DefinedPacket {
 	public static List<String> readStringArray(ByteBuf input) {
 		int length = DefinedPacket.readVarInt(input);
 		List<String> list = new ArrayList<>(length);
-		for(int i = 0; i < length; ++i) {
+		for(int i = 0; i < length; i++) {
 			list.add(DefinedPacket.readString(input));
 		}
 

@@ -2,14 +2,14 @@ package net.gtminecraft.gitgames.server.minigame.states;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
 import net.gtminecraft.gitgames.server.minigame.AbstractGameState;
-import net.gtminecraft.gitgames.server.minigame.GameState;
+import net.gtminecraft.gitgames.server.minigame.PlayableGameState;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
-public class FinishedState extends GameState {
+public class FinishedState extends PlayableGameState {
 
 	public FinishedState(MinigameManager minigameManager) {
 		super(minigameManager, GameStateUtils.FINISHED_STATE_PRIORITY);
@@ -26,6 +26,7 @@ public class FinishedState extends GameState {
 	@Override
 	public void onDisable() {
 		this.minigameManager.setMaxPlayers(0);
+		this.minigameManager.setMinigame(null);
 		this.minigameManager.clearSpectatorQueue();
 	}
 

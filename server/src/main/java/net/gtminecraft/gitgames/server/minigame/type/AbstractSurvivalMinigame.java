@@ -1,8 +1,7 @@
-package net.gtminecraft.gitgames.service.mechanics;
+package net.gtminecraft.gitgames.server.minigame;
 
 import lombok.Setter;
-import net.gtminecraft.gitgames.compatability.mechanics.GameStatus;
-import net.gtminecraft.gitgames.service.util.PlayerUtil;
+import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
@@ -54,8 +53,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 	public void deleteWorlds() {
 		for (World world : this.worlds.values()) {
 			if (world.getPlayerCount() != 0) {
-				List<Player> online = world.getPlayers();
-				for (Player player : online) {
+				for (Player player : world.getPlayers()) {
 					player.teleport(this.lobby);
 					player.sendMessage(ChatColor.RED + "You were unexpectedly in the world " + world.getName() + " as it was being deleted. You have been teleported back to the lobby.");
 				}
@@ -98,7 +96,6 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 
 	@Override
 	public void startTeleport() {
-		this.status = GameStatus.ACTIVE;
 		World overworld = this.getOverworld();
 		overworld.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
 		int radius = Math.max(8, 3 * this.players.size());
@@ -143,8 +140,6 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 
 			this.onPlayerEndTeleport(player);
 		}
-
-		this.status = GameStatus.WAITING;
 	}
 
 	@Override
@@ -155,6 +150,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 
 	@Override
 	public boolean createWorlds() {
+
 		if (this.worlds.size() == 3) {
 			return true;
 		}
@@ -253,6 +249,12 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 		return this.getWorld(World.Environment.THE_END);
 	}
 
+	/**
+	 * Clears all internal game data for players and spectators as well as cancelling all ongoing tasks originally
+	 * started by the minigame and setting all timestamps and game keys to their minimum value.
+	 * <p>
+	 * Any derived methods should always call the super class's method or else data will not be unloaded properly
+	 */
 	@Override
 	public void unload() {
 		super.unload();

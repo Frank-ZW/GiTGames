@@ -1,12 +1,12 @@
 package net.gtminecraft.gitgames.server.minigame.states;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
+import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
+import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDataUpdate;
 import net.gtminecraft.gitgames.server.minigame.AbstractGameState;
 import net.gtminecraft.gitgames.server.minigame.GameState;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
-import net.gtminecraft.gitgames.service.event.MinigameEvent;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.entity.Player;
@@ -25,8 +25,7 @@ public class CountdownState extends GameState {
 
 	@Override
 	public void onEnable() {
-		this.minigame.onPreCountdown();
-		new CountdownRunnable().runTaskTimer(this.plugin, 0, 20L);
+		this.minigame.startCountdown(new CountdownRunnable());
 	}
 
 	@Override
@@ -40,9 +39,14 @@ public class CountdownState extends GameState {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		Player player = e.getPlayer();
-		if (this.minigame.isPlayer(player.getUniqueId())) {
+		if (!this.minigame.getPlayers().remove(player.getUniqueId())) {
+			return;
+		}
+
+		this.plugin.getConnectionManager().write(new PacketPlayerDataUpdate(PlayerStatus.INACTIVE, player.getUniqueId()));
+		if (this.minigame.getNumPlayers() < this.minigameManager.getMaxPlayers()) {
 			this.minigame.cancelCountdown();
-			this.minigameManager.setState(new QueuingState(this.minigameManager));
+			this.minigameManager.setState(this.minigame.getNumPlayers() == 0 ? new FinishedState(this.minigameManager) : new QueuingState(this.minigameManager));
 		}
 	}
 
@@ -58,7 +62,6 @@ public class CountdownState extends GameState {
 			}
 
 			if (this.countdown-- <= 0) {
-				Bukkit.getPluginManager().callEvent(new MinigameEvent(minigame, MinigameEvent.Action.START));
 				minigameManager.nextState();
 				this.cancel();
 			}

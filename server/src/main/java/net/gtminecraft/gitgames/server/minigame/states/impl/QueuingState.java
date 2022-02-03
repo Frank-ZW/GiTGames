@@ -1,6 +1,8 @@
 package net.gtminecraft.gitgames.server.minigame.states;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
+import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
+import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDataUpdate;
 import net.gtminecraft.gitgames.server.minigame.AbstractGameState;
 import net.gtminecraft.gitgames.server.minigame.GameState;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
@@ -10,6 +12,7 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 // State representing transient period between the first player joining and the minigame already having been
 // initialized in memory and the last player joining and the countdown beginning
@@ -54,6 +57,19 @@ public class QueuingState extends GameState {
 					this.minigameManager.nextState();
 				}
 			});
+		}
+	}
+
+	@EventHandler
+	public void onPlayerQuit(PlayerQuitEvent e) {
+		Player player = e.getPlayer();
+		if (!this.minigame.getPlayers().remove(player.getUniqueId())) {
+			return;
+		}
+
+		this.plugin.getConnectionManager().write(new PacketPlayerDataUpdate(PlayerStatus.INACTIVE, player.getUniqueId()));
+		if (this.minigame.getNumPlayers() == 0) {
+			this.minigameManager.setState(new FinishedState(this.minigameManager));
 		}
 	}
 }

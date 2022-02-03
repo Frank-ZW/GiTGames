@@ -4,7 +4,7 @@ import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent
 import com.destroystokyo.paper.event.player.PlayerPickupExperienceEvent;
 import lombok.Getter;
 import lombok.Setter;
-import net.gtminecraft.gitgames.compatability.mechanics.GameStatus;
+import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDisconnect;
 import net.gtminecraft.gitgames.service.AbstractCorePlugin;
 import net.gtminecraft.gitgames.service.event.MinigameEndEvent;
 import net.gtminecraft.gitgames.service.util.ItemUtil;
@@ -19,6 +19,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -26,9 +27,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerPickupArrowEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -36,16 +35,19 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractMinigame implements Listener {
 
 	protected final AbstractCorePlugin plugin;
+	@Getter
 	protected final Map<UUID, BukkitTask> disconnections = new HashMap<>();
 	protected final List<UUID> players = new ArrayList<>();
 	protected final List<UUID> spectators = new ArrayList<>();
@@ -61,8 +63,6 @@ public abstract class AbstractMinigame implements Listener {
 	protected final Location lobby;
 	@Getter
 	protected int gameKey;
-	@Getter
-	protected GameStatus status = GameStatus.WAITING;
 	protected long startTimestamp;
 
 	public AbstractMinigame(String name, Location lobby, int gameKey) {
@@ -72,39 +72,74 @@ public abstract class AbstractMinigame implements Listener {
 		this.gameKey = gameKey;
 	}
 
+	/**
+	 * Returns the game's friendly display name in lowercase with all spaces replaced with underscores.
+	 *
+	 * @return	A String representing the raw name of the game.
+	 */
 	public String getRawName() {
-		return this.name.replaceAll("\\s+", "");
+		return StringUtils.lowerCase(this.name.replaceAll("\\s+", "_"));
 	}
 
+	/**
+	 * Returns the raw name with the game key and environment type appended to the end by underscores.
+	 *
+	 * @param environment	The environment of the world to be generated.
+	 * @return				A String of the world's name.
+	 */
 	public String getWorldName(World.Environment environment) {
 		return StringUtils.lowerCase(this.getRawName() + "_" + this.gameKey + "_" + environment);
 	}
 
+	/**
+	 * Directly adds a player to the internal player queue. This method must not be called at any time unless the
+	 * server is in the queuing state.
+	 *
+	 * @param uniqueId	The UUID of the player to be directly added to the game.
+	 */
 	public void addPlayer(UUID uniqueId) {
-		if (!this.status.isWaiting() && !this.status.isCountdown()) {
-			throw new IllegalStateException("Cannot manually add a player while the game is in-progress!");
-		}
-
 		this.players.add(uniqueId);
 	}
 
+	/**
+	 * @return	The number of players in the minigame.
+	 */
 	public int getNumPlayers() {
 		return this.players.size();
 	}
 
+	/**
+	 * @return	The collection of player UUIDs backing the game.
+	 */
 	public Collection<UUID> getPlayers() {
 		return this.players;
 	}
 
+	/**
+	 *
+	 * @param uniqueId	The UUID of the player to be checked.
+	 * @return			True if the player is spectating the game, false otherwise.
+	 */
 	public boolean isSpectator(UUID uniqueId) {
 		return this.spectators.contains(uniqueId);
 	}
 
+	/**
+	 * Returns true if the player is in the game, false otherwise. Spectators are not included in the backing player
+	 * list. To check if a player is a spectator, use {@link #isSpectator(UUID)}.
+	 *
+	 * @param uniqueId	The UUID of the player to be checked.
+	 * @return			True if the player is in the game, false otherwise.
+	 */
 	public boolean isPlayer(UUID uniqueId) {
 		return this.players.contains(uniqueId);
 	}
 
-	public void sendTitleWithEffect(Component title, Effect effect) {
+	/**
+	 * @param title		The title to be displayed to all players.
+	 * @param effect	The sound effect to be played to all players.
+	 */
+	public void sendTitleWithEffect(@NotNull Component title, @NotNull Effect effect) {
 		for (UUID uniqueId : this.players) {
 			Player player = Bukkit.getPlayer(uniqueId);
 			if (player != null) {
@@ -114,6 +149,22 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
+	/**
+	 * Starts the countdown before the initial teleportation begins. Any derived methods should always call the super
+	 * class's method or else the countdown will not be run.
+	 *
+	 * If no countdown is desired, set the runnable to immediately queue the game manager's next game state.
+	 *
+	 * @param runnable	The runnable representing the countdown
+	 */
+	public void startCountdown(@NotNull BukkitRunnable runnable) {
+		this.countdown = runnable.runTaskTimer(this.plugin, 0L, 20L);
+	}
+
+	/**
+	 * Cancels the countdown if there is one active. Any derived methods should always call the super class's method or
+	 * else the countdown will not be cancelled properly.
+	 */
 	public void cancelCountdown() {
 		if (this.countdown == null || this.countdown.isCancelled()) {
 			return;
@@ -123,6 +174,12 @@ public abstract class AbstractMinigame implements Listener {
 		this.sendTitleWithEffect(Component.text(ChatColor.RED + "CANCELLED!"), Effect.CLICK2);
 	}
 
+	/**
+	 * Clears all internal game data for players and spectators as well as cancelling all ongoing tasks originally
+	 * started by the minigame and setting all timestamps and game keys to their minimum value.
+	 *
+	 * Any derived methods should always call the super class's method or else data will not be unloaded properly
+	 */
 	public void unload() {
 		this.players.clear();
 		this.spectators.clear();
@@ -131,6 +188,7 @@ public abstract class AbstractMinigame implements Listener {
 		Bukkit.getScheduler().cancelTasks(this.plugin);
 	}
 
+	// Use this method only during or after countdown state, else get the backing player list and remove the UUID manually
 	public void removePlayer(Player player) {
 		this.players.remove(player.getUniqueId());
 		if (this.spectators.remove(player.getUniqueId())) {
@@ -165,6 +223,10 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
+	/**
+	 * @param item	The nullable item to be checked.
+	 * @return		True if the item passed is a spectator compass, false otherwise.
+	 */
 	public boolean isSpectatorCompass(@Nullable ItemStack item) {
 		if (item == null) {
 			return false;
@@ -175,21 +237,31 @@ public abstract class AbstractMinigame implements Listener {
 		return container.has(this.plugin.getKey(), PersistentDataType.STRING) && "spectator_compass".equals(container.get(this.plugin.getKey(), PersistentDataType.STRING));
 	}
 
+	/**
+	 * Returns a Component of the player's in-game display name in chat. This method can only be called during game.
+	 *
+	 * @param player	The player typing in chat.
+	 * @return			A Component of the player's display name in chat.
+	 */
 	public Component gameDisplayName(@NotNull OfflinePlayer player) {
 		return Component.text(ChatColor.GREEN + player.getName());
 	}
 
+	/**
+	 * @param player	The player typing in chat.
+	 * @return			A Component containing the player's prefix, if they have any, and their game display name.
+	 */
 	public Component playerChatHandler(@NotNull Player player) {
-		String prefix = null;
+		String prefix = "";
 		Chat chat = this.plugin.getChat();
 		if (chat != null) {
-			prefix = chat.getPlayerPrefix(player);
+			prefix = chat.getPlayerPrefix(player) + " ";
 		}
 
-		return Component.text((prefix == null ? "" : ChatColor.translateAlternateColorCodes('&', prefix) + ChatColor.RESET + " ")).append(this.isSpectator(player.getUniqueId()) ? Component.text(ChatColor.BLUE + player.getName()) : this.gameDisplayName(player));
+		return Component.text(ChatColor.translateAlternateColorCodes('&', prefix) + ChatColor.RESET).append(this.isSpectator(player.getUniqueId()) ? Component.text(ChatColor.BLUE + player.getName()) : this.gameDisplayName(player));
 	}
 
-	public void endMinigame(WinnerWrapper winner, boolean urgently) {
+	public void endMinigame(@NotNull WinnerWrapper winner, boolean urgently) {
 		if (this.winner.getClass() != EmptyWinnerWrapper.class) {
 			return;
 		}
@@ -207,6 +279,11 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
+	/**
+	 * @param event			The Bukkit event being passed.
+	 * @param uniqueId		The target of the event if there is one.
+	 * @param checkPlayer	True if the game should check if {@param uniqueId} is a player.
+	 */
 	public void handleEvent(@NotNull Event event, @Nullable UUID uniqueId, boolean checkPlayer) {
 		if (checkPlayer && !this.isPlayer(uniqueId)) {
 			return;
@@ -314,7 +391,6 @@ public abstract class AbstractMinigame implements Listener {
 	}
 
 	public abstract void handlePlayerEvent(@NotNull Event event);
-	public abstract void onPreCountdown();
 	public abstract void startTeleport();
 	public abstract void endTeleport();
 	public abstract boolean createWorlds();
@@ -323,6 +399,25 @@ public abstract class AbstractMinigame implements Listener {
 	public abstract String startMessage(@NotNull UUID uniqueId);
 	public abstract boolean onPlayerStartTeleport(@NotNull Player player, @NotNull Location to);
 	public abstract void onPlayerEndTeleport(@NotNull Player player);
+
+	@EventHandler
+	public void onPlayerQuit(PlayerQuitEvent e) {
+		Player player = e.getPlayer();
+		if (!this.isPlayer(player.getUniqueId())) {
+			return;
+		}
+
+		if (this.isSpectator(player.getUniqueId())) {
+			this.removePlayer(player);
+		} else {
+			Bukkit.broadcast(this.gameDisplayName(player).append(Component.text(ChatColor.GRAY + " disconnected.")));
+			this.disconnections.put(player.getUniqueId(), Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+				this.disconnections.remove(player.getUniqueId());
+				this.plugin.getConnectionManager().write(new PacketPlayerDisconnect(player.getUniqueId()));
+				this.removePlayer(player);
+			}, TimeUnit.MINUTES.toSeconds(3) * 20L));
+		}
+	}
 
 	public interface WinnerWrapper {
 		@NotNull Component announce();

@@ -33,6 +33,8 @@ public enum Protocol {
 			this.TO_SERVER.registerPacket(PacketKeepAlive.class, PacketKeepAlive::new, 0x02);
 			this.TO_SERVER.registerPacket(PacketGameUpdate.class, PacketGameUpdate::new, 0x03);
 			this.TO_SERVER.registerPacket(PacketPlayerConnect.class, PacketPlayerConnect::new, 0x04);
+			this.TO_SERVER.registerPacket(PacketPlayerDataUpdate.class, PacketPlayerDataUpdate::new, 0x05);
+			this.TO_SERVER.registerPacket(PacketPlayerDisconnect.class, PacketPlayerDisconnect::new, 0x06);
 		}
 	};
 

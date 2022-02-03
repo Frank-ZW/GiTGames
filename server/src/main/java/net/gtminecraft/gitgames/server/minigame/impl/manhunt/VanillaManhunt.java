@@ -2,6 +2,7 @@ package net.gtminecraft.gitgames.manhunt.mechanics;
 
 import net.gtminecraft.gitgames.manhunt.AbstractManhunt;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EnderDragon;
@@ -61,7 +62,7 @@ public class VanillaManhunt extends AbstractManhunt {
 			}
 		} else if (event instanceof EnderDragonChangePhaseEvent e) {
 			if (e.getNewPhase() == EnderDragon.Phase.DYING) {
-				this.endMinigame(new SpeedrunnerWrapper(), false);
+				this.endMinigame(new SpeedrunnerWrapper(Bukkit.getOfflinePlayer(this.speedrunner).getName()), false);
 			}
 		}
 	}
