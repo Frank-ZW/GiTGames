@@ -1,6 +1,6 @@
-package net.gtminecraft.gitgames.server.loader;
+package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
-import net.gtminecraft.gitgames.server.minigame.impl.manhunt.VanillaManhunt;
+import net.gtminecraft.gitgames.server.loader.GameClassLoaderInterface;
 import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;

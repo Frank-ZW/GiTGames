@@ -1,4 +1,4 @@
-package net.gtminecraft.gitgames.service.util;
+package net.gtminecraft.gitgames.server.util;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;

@@ -2,7 +2,7 @@ package net.gtminecraft.gitgames.server.loader.manager;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameType;
 import net.gtminecraft.gitgames.server.loader.GameClassLoaderInterface;
-import net.gtminecraft.gitgames.server.loader.VanillaManhuntLoader;
+import net.gtminecraft.gitgames.server.minigame.impl.manhunt.VanillaManhuntLoader;
 import org.jetbrains.annotations.Nullable;
 
 public class GameLoaderManager {

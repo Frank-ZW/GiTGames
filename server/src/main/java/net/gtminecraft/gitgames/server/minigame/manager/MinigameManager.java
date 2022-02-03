@@ -11,13 +11,13 @@ import net.gtminecraft.gitgames.compatability.packet.PacketPlayerConnect;
 import net.gtminecraft.gitgames.server.CorePlugin;
 import net.gtminecraft.gitgames.server.loader.GameClassLoaderInterface;
 import net.gtminecraft.gitgames.server.loader.manager.GameLoaderManager;
-import net.gtminecraft.gitgames.server.minigame.AbstractGameState;
-import net.gtminecraft.gitgames.server.minigame.states.ActiveState;
-import net.gtminecraft.gitgames.server.minigame.states.CountdownState;
-import net.gtminecraft.gitgames.server.minigame.states.FinishedState;
-import net.gtminecraft.gitgames.server.minigame.states.InactiveState;
-import net.gtminecraft.gitgames.service.mechanics.AbstractMinigame;
-import net.gtminecraft.gitgames.service.util.PlayerUtil;
+import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
+import net.gtminecraft.gitgames.server.minigame.states.impl.ActiveState;
+import net.gtminecraft.gitgames.server.minigame.states.impl.CountdownState;
+import net.gtminecraft.gitgames.server.minigame.states.impl.FinishedState;
+import net.gtminecraft.gitgames.server.minigame.states.impl.InactiveState;
+import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
+import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import net.gtminecraft.gitgames.server.renderer.GameRenderer;
 import net.gtminecraft.gitgames.server.renderer.LobbyRenderer;
 import net.kyori.adventure.audience.Audience;
@@ -41,9 +41,11 @@ public class MinigameManager implements Listener {
 
 	@Getter
 	private final CorePlugin plugin;
+	@Getter
 	private final Map<UUID, UUID> spectatorQueue = new HashMap<>();
 	private final GameLoaderManager loaderManager = new GameLoaderManager();
 	private AbstractGameState state;
+	@Setter
 	@Getter
 	private AbstractMinigame minigame;
 	@Setter
@@ -56,7 +58,21 @@ public class MinigameManager implements Listener {
 	}
 
 	public void disable() {
+		Bukkit.getScheduler().cancelTasks(this.plugin);
+		if (this.minigame == null) {
+			Bukkit.getConsoleSender().sendMessage(Component.text(ChatColor.GREEN + "No active minigame detected... skipping straight to protocol disconnection."));
+		} else {
+			if (this.isInState(ActiveState.class)) {
+				this.minigame.endMinigame(new AbstractMinigame.GeneralErrorWrapper(ChatColor.GREEN + "The server you were on has disconnected from the network. If you believe the server crashed, contact an administrator."), true);
+			} else if (this.isInState(FinishedState.class)) {
+				this.minigame.endTeleport();
+				this.minigame.deleteWorlds(true);
+			} else {
+				this.minigame.deleteWorlds(true);
+			}
 
+			this.minigame = null;
+		}
 	}
 
 	public boolean isInState(Class<? extends AbstractGameState> clazz) {
@@ -68,7 +84,6 @@ public class MinigameManager implements Listener {
 	}
 
 	public void setState(AbstractGameState state) {
-		Bukkit.broadcast(Component.text(String.format(ChatColor.LIGHT_PURPLE + "Updating game state from %s to %s", this.state == null ? "Startup" : this.state.getClass().getSimpleName(), state.getClass().getSimpleName())));
 		if (this.state != null) {
 			this.state.onDisable();
 			HandlerList.unregisterAll(this.state);
@@ -177,12 +192,12 @@ public class MinigameManager implements Listener {
 		Iterator<Audience> iterator = e.viewers().iterator();
 		while (iterator.hasNext()) {
 			Audience audience = iterator.next();
-			if (!(audience instanceof Player recipient)) {
+			if (!(audience instanceof Player) && !(audience instanceof ConsoleCommandSender)) {
 				iterator.remove();
 				continue;
 			}
 
-			if ((this.minigame.isPlayer(player.getUniqueId()) ? (this.minigame.isSpectator(player.getUniqueId()) ? !this.minigame.isSpectator(recipient.getUniqueId()) : !this.minigame.isPlayer(recipient.getUniqueId())) : !this.minigame.isPlayer(recipient.getUniqueId())) && !(recipient instanceof ConsoleCommandSender)) {
+			if (audience instanceof Player recipient && (this.minigame.isPlayer(player.getUniqueId()) ? (this.minigame.isSpectator(player.getUniqueId()) ? !this.minigame.isSpectator(recipient.getUniqueId()) : !this.minigame.isPlayer(recipient.getUniqueId())) : !this.minigame.isPlayer(recipient.getUniqueId()))) {
 				iterator.remove();
 				continue;
 			}

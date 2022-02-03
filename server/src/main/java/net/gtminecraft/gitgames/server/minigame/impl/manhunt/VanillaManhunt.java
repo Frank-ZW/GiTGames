@@ -1,6 +1,5 @@
-package net.gtminecraft.gitgames.manhunt.mechanics;
+package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
-import net.gtminecraft.gitgames.manhunt.AbstractManhunt;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

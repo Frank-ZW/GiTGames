@@ -1,6 +1,6 @@
 package net.gtminecraft.gitgames.server.loader;
 
-import net.gtminecraft.gitgames.service.mechanics.AbstractMinigame;
+import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 

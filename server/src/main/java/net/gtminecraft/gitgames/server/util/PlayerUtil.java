@@ -1,4 +1,4 @@
-package net.gtminecraft.gitgames.service.util;
+package net.gtminecraft.gitgames.server.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;

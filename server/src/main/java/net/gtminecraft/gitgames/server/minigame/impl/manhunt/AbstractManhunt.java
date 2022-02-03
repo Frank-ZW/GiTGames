@@ -1,10 +1,10 @@
-package net.gtminecraft.gitgames.manhunt;
+package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
 import lombok.RequiredArgsConstructor;
-import net.gtminecraft.gitgames.manhunt.functional.PlayerTrackerHandler;
-import net.gtminecraft.gitgames.service.mechanics.AbstractSurvivalMinigame;
-import net.gtminecraft.gitgames.service.mechanics.functional.IPlayerTracker;
-import net.gtminecraft.gitgames.service.util.ItemUtil;
+import net.gtminecraft.gitgames.server.minigame.functional.PlayerTrackerHandler;
+import net.gtminecraft.gitgames.server.minigame.type.AbstractSurvivalMinigame;
+import net.gtminecraft.gitgames.server.minigame.functional.IPlayerTracker;
+import net.gtminecraft.gitgames.server.util.ItemUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,7 +24,7 @@ public abstract class AbstractManhunt extends AbstractSurvivalMinigame implement
 
 	protected UUID speedrunner;
 	protected final List<UUID> hunters = new ArrayList<>();
-	private final IPlayerTracker trackerHandler = new PlayerTrackerHandler(this.plugin, ItemUtil.DEFAULT_PLAYER_TRACKER, "player_tracker");
+	private final IPlayerTracker trackerHandler = new PlayerTrackerHandler(ItemUtil.DEFAULT_PLAYER_TRACKER, "player_tracker");
 
 	public AbstractManhunt(Location lobby, int gameKey) {
 		super("Manhunt", lobby, gameKey);

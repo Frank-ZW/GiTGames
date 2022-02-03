@@ -1,10 +1,10 @@
-package net.gtminecraft.gitgames.server.minigame.states;
+package net.gtminecraft.gitgames.server.minigame.states.impl;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
-import net.gtminecraft.gitgames.server.minigame.AbstractGameState;
-import net.gtminecraft.gitgames.server.minigame.PlayableGameState;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
-import net.gtminecraft.gitgames.service.event.MinigameEndEvent;
+import net.gtminecraft.gitgames.server.event.MinigameEndEvent;
+import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
+import net.gtminecraft.gitgames.server.minigame.states.PlayableGameState;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;

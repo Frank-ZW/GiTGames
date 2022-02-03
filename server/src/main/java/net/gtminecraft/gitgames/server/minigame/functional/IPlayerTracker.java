@@ -1,4 +1,4 @@
-package net.gtminecraft.gitgames.service.mechanics.functional;
+package net.gtminecraft.gitgames.server.minigame.functional;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

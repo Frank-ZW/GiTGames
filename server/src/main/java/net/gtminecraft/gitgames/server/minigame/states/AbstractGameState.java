@@ -1,4 +1,4 @@
-package net.gtminecraft.gitgames.server.minigame;
+package net.gtminecraft.gitgames.server.minigame.states;
 
 import net.gtminecraft.gitgames.compatability.packet.PacketGameUpdate;
 import net.gtminecraft.gitgames.server.CorePlugin;

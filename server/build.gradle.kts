@@ -26,9 +26,7 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok:1.18.22")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
 
-    compileOnly(project(":manhunt"))
     compileOnly(project(":compatability"))
-    compileOnly(project(":service"))
 }
 
 tasks {

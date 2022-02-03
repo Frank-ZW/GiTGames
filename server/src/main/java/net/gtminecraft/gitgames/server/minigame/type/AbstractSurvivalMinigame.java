@@ -1,6 +1,7 @@
-package net.gtminecraft.gitgames.server.minigame;
+package net.gtminecraft.gitgames.server.minigame.type;
 
 import lombok.Setter;
+import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
 import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.*;
@@ -157,7 +158,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 
 		for (int i = 0; i < 3; i++) {
 			World.Environment environment = World.Environment.values()[i];
-			World world = new WorldCreator(this.getWorldName(environment)).environment(environment).type(this.worldType).seed(this.seed).createWorld();
+			World world = Bukkit.createWorld(new WorldCreator(this.getWorldName(environment)).environment(environment).type(this.worldType).seed(this.seed));
 			if (world != null) {
 				world.setKeepSpawnInMemory(false);
 				this.worlds.put(environment, world);

@@ -1,4 +1,4 @@
-package net.gtminecraft.gitgames.service.util;
+package net.gtminecraft.gitgames.server.util;
 
 import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;

@@ -1,11 +1,11 @@
-package net.gtminecraft.gitgames.server.minigame.states;
+package net.gtminecraft.gitgames.server.minigame.states.impl;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
 import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDataUpdate;
-import net.gtminecraft.gitgames.server.minigame.AbstractGameState;
-import net.gtminecraft.gitgames.server.minigame.GameState;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
+import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
+import net.gtminecraft.gitgames.server.minigame.states.GameState;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
@@ -33,7 +33,7 @@ public class CountdownState extends GameState {
 
 	@Override
 	public AbstractGameState nextState() {
-		return new ActiveState(this.minigameManager);
+		return new PreparationState(this.minigameManager);
 	}
 
 	@EventHandler

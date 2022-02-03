@@ -1,14 +1,14 @@
-package net.gtminecraft.gitgames.service.mechanics;
+package net.gtminecraft.gitgames.server.minigame;
 
 import com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent;
 import com.destroystokyo.paper.event.player.PlayerPickupExperienceEvent;
 import lombok.Getter;
 import lombok.Setter;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDisconnect;
-import net.gtminecraft.gitgames.service.AbstractCorePlugin;
-import net.gtminecraft.gitgames.service.event.MinigameEndEvent;
-import net.gtminecraft.gitgames.service.util.ItemUtil;
-import net.gtminecraft.gitgames.service.util.PlayerUtil;
+import net.gtminecraft.gitgames.server.CorePlugin;
+import net.gtminecraft.gitgames.server.event.MinigameEndEvent;
+import net.gtminecraft.gitgames.server.util.ItemUtil;
+import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractMinigame implements Listener {
 
-	protected final AbstractCorePlugin plugin;
+	protected final CorePlugin plugin;
 	@Getter
 	protected final Map<UUID, BukkitTask> disconnections = new HashMap<>();
 	protected final List<UUID> players = new ArrayList<>();
@@ -66,7 +66,7 @@ public abstract class AbstractMinigame implements Listener {
 	protected long startTimestamp;
 
 	public AbstractMinigame(String name, Location lobby, int gameKey) {
-		this.plugin = AbstractCorePlugin.getInstance();
+		this.plugin = CorePlugin.getInstance();
 		this.name = name;
 		this.lobby = lobby;
 		this.gameKey = gameKey;

@@ -16,6 +16,7 @@ import net.gtminecraft.gitgames.server.connection.PipelineBase;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
@@ -73,7 +74,7 @@ public class ConnectionManager {
 				.channel();
 	}
 
-	public void write(DefinedPacket packet) {
+	public void write(@NotNull DefinedPacket packet) {
 		this.channel.writeAndFlush(packet);
 	}
 

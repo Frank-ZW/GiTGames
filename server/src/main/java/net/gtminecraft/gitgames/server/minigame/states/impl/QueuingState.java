@@ -1,11 +1,11 @@
-package net.gtminecraft.gitgames.server.minigame.states;
+package net.gtminecraft.gitgames.server.minigame.states.impl;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
 import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDataUpdate;
-import net.gtminecraft.gitgames.server.minigame.AbstractGameState;
-import net.gtminecraft.gitgames.server.minigame.GameState;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
+import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
+import net.gtminecraft.gitgames.server.minigame.states.GameState;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -31,7 +31,7 @@ public class QueuingState extends GameState {
 
 	@Override
 	public AbstractGameState nextState() {
-		return new PreparationState(this.minigameManager);
+		return new CountdownState(this.minigameManager);
 	}
 
 	@EventHandler
@@ -52,7 +52,6 @@ public class QueuingState extends GameState {
 
 				player.getInventory().clear();
 				player.setFireTicks(0);
-				player.sendMessage(Component.text(String.format("%s: " + ChatColor.GREEN + "The minigame currently has %s out of %s players.", this.getClass().getSimpleName(), this.minigame.getNumPlayers(), this.minigameManager.getMaxPlayers())));
 				if (this.minigame.getNumPlayers() >= this.minigameManager.getMaxPlayers()) {
 					this.minigameManager.nextState();
 				}

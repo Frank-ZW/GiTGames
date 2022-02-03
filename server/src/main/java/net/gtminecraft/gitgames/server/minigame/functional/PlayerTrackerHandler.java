@@ -1,8 +1,7 @@
-package net.gtminecraft.gitgames.manhunt.functional;
+package net.gtminecraft.gitgames.server.minigame.functional;
 
 import lombok.RequiredArgsConstructor;
-import net.gtminecraft.gitgames.service.AbstractCorePlugin;
-import net.gtminecraft.gitgames.service.mechanics.functional.IPlayerTracker;
+import net.gtminecraft.gitgames.server.CorePlugin;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 @RequiredArgsConstructor
 public class PlayerTrackerHandler implements IPlayerTracker {
 
-	private final AbstractCorePlugin plugin;
+	private final CorePlugin plugin = CorePlugin.getInstance();
 	private final Component displayName;
 	private final String persistentData;
 

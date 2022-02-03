@@ -1,8 +1,8 @@
-package net.gtminecraft.gitgames.server.minigame;
+package net.gtminecraft.gitgames.server.minigame.states;
 
 import net.gtminecraft.gitgames.compatability.packet.PacketGameUpdate;
+import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
-import net.gtminecraft.gitgames.service.mechanics.AbstractMinigame;
 
 public abstract class GameState extends AbstractGameState {
 

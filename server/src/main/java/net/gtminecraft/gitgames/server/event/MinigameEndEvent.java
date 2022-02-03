@@ -1,4 +1,4 @@
-package net.gtminecraft.gitgames.service.event;
+package net.gtminecraft.gitgames.server.event;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

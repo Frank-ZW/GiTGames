@@ -1,8 +1,8 @@
 package net.gtminecraft.gitgames.server.renderer;
 
 import io.papermc.paper.chat.ChatRenderer;
-import net.gtminecraft.gitgames.service.mechanics.AbstractMinigame;
-import net.gtminecraft.gitgames.service.util.StringUtil;
+import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
+import net.gtminecraft.gitgames.server.util.StringUtil;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
