@@ -54,6 +54,11 @@ public class UpstreamBridge extends PacketHandler {
 	}
 
 	@Override
+	public void handle(PacketPlayerDisconnect packet) {
+		this.plugin.getPlayerManager().removeDisconnection(packet.getPlayer());
+	}
+
+	@Override
 	public void handle(PacketGameUpdate packet) throws Exception {
 		MinigameServerData minigameServerData = (MinigameServerData) this.serverData;
 		GameStatus status = GameStateUtils.gameStatusByPriority(packet.getPriority());
@@ -112,6 +117,16 @@ public class UpstreamBridge extends PacketHandler {
 					playerData.setStatus(packet.getPlayerStatus());
 					playerData.connect(serverData.getServer());
 				}
+			}
+		}
+	}
+
+	@Override
+	public void handle(PacketPlayerDataUpdate packet) {
+		for (UUID uniqueId : packet.getPlayers()) {
+			PlayerData playerData = this.plugin.getPlayerManager().getPlayerData(uniqueId);
+			if (playerData != null) {
+				playerData.setStatus(packet.getStatus());
 			}
 		}
 	}

@@ -46,7 +46,7 @@ public class PlayerManager {
 
 	public void removePlayer(ProxiedPlayer player) {
 		PlayerData playerData = this.players.remove(player.getUniqueId());
-		if (playerData != null && playerData.getStatus().isPlaying()) {
+		if (playerData != null && playerData.getStatus().isPlaying() && player.getServer() != null) {
 			this.disconnections.put(player.getUniqueId(), player.getServer().getInfo());
 		}
 	}
