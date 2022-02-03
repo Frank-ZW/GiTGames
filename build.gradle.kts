@@ -32,10 +32,8 @@ repositories {
 
 dependencies {
     implementation(project(":compatability"))
-    implementation(project(":service"))
     implementation(project(":server"))
     implementation(project(":proxy"))
-    implementation(project(":manhunt"))
 }
 
 tasks {
