@@ -1,7 +1,6 @@
 package net.gtminecraft.gitgames.server.minigame.states.impl;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
-import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.gtminecraft.gitgames.server.event.MinigameEndEvent;
 import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
 import net.gtminecraft.gitgames.server.minigame.states.PlayableGameState;
@@ -11,8 +10,8 @@ import org.bukkit.event.HandlerList;
 
 public class ActiveState extends PlayableGameState {
 
-	public ActiveState(MinigameManager minigameManager) {
-		super(minigameManager, GameStateUtils.ACTIVE_STATE_PRIORITY);
+	public ActiveState() {
+		super(GameStateUtils.ACTIVE_STATE_PRIORITY);
 	}
 
 	@Override
@@ -29,7 +28,7 @@ public class ActiveState extends PlayableGameState {
 
 	@Override
 	public AbstractGameState nextState() {
-		return new FinishedState(this.minigameManager);
+		return new FinishedState();
 	}
 
 	@EventHandler

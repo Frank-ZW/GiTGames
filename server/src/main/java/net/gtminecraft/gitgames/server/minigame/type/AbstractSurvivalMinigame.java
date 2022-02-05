@@ -3,9 +3,11 @@ package net.gtminecraft.gitgames.server.minigame.type;
 import lombok.Setter;
 import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
 import net.gtminecraft.gitgames.server.util.PlayerUtil;
+import net.gtminecraft.gitgames.server.util.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
+import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -60,7 +62,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 				}
 			}
 
-			Bukkit.unloadWorld(world, true);
+			Bukkit.unloadWorld(world, false);
 			try {
 				FileUtils.deleteDirectory(world.getWorldFolder());
 			} catch (IOException e) {
@@ -75,7 +77,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 			if (result) {
 				player.sendMessage(this.startMessage(player.getUniqueId()));
 			} else {
-				player.sendMessage(ChatColor.RED + "Failed to teleport you to the " + this.getName() + " world(s). Contact an administrator if this occurs.");
+				player.sendMessage(String.format(StringUtil.ERROR_TELEPORTING_TO_MAP, this.getName()));
 			}
 		});
 
@@ -169,7 +171,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 	}
 
 	@Override
-	public void handlePlayerEvent(@NotNull Event event) {
+	protected void handlePlayerEvent(@NotNull Event event) {
 		if (event instanceof PlayerPortalEvent e) {
 			Player player = e.getPlayer();
 			World fromWorld = e.getFrom().getWorld();
@@ -183,7 +185,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 						case NORMAL -> {
 							e.getTo().setWorld(this.getNether());
 							if (this.players.contains(player.getUniqueId()) && !this.spectators.contains(player.getUniqueId())) {
-								this.plugin.grantNetherAdvancement(player);
+								this.grantAdvancement(player, this.plugin.getNetherAdvancement());
 							}
 						}
 						case NETHER -> e.setTo(new Location(this.getOverworld(), e.getFrom().getX() * 8.0D, e.getFrom().getY(), e.getFrom().getZ() * 8.0D));
@@ -195,7 +197,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 						case NORMAL -> {
 							e.getTo().setWorld(this.getEnd());
 							if (this.players.contains(player.getUniqueId()) && !this.spectators.contains(player.getUniqueId())) {
-								this.plugin.grantEndAdvancement(player);
+								this.grantAdvancement(player, this.plugin.getEndAdvancement());
 							}
 						}
 						case THE_END -> e.setTo(player.getBedSpawnLocation() == null ? this.getOverworld().getSpawnLocation() : player.getBedSpawnLocation());
@@ -220,7 +222,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 			}
 		} else if (event instanceof PlayerRespawnEvent e) {
 			if (this.getOverworld() == null) {
-				this.endMinigame(new GeneralErrorWrapper(ChatColor.RED + "The " + this.getName() + " overworld failed to generate properly... Contact an administrator if this occurs."), true);
+				this.endMinigame(new GeneralErrorInterruption(ChatColor.RED + "The " + this.getName() + " overworld failed to generate properly... Contact an administrator if this occurs."), true);
 				return;
 			}
 
@@ -276,5 +278,12 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerRespawn(PlayerRespawnEvent e) {
 		this.handleEvent(e, e.getPlayer().getUniqueId());
+	}
+
+	public void grantAdvancement(@NotNull Player player, @NotNull Advancement advancement) {
+		AdvancementProgress progress = player.getAdvancementProgress(advancement);
+		for (String s : progress.getRemainingCriteria()) {
+			progress.awardCriteria(s);
+		}
 	}
 }

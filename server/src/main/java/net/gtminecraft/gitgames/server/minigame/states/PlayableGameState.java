@@ -1,6 +1,5 @@
 package net.gtminecraft.gitgames.server.minigame.states;
 
-import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -11,8 +10,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public abstract class PlayableGameState extends GameState {
 
-	public PlayableGameState(MinigameManager minigameManager, int priority) {
-		super(minigameManager, priority);
+	public PlayableGameState(int priority) {
+		super(priority);
 	}
 
 	@EventHandler

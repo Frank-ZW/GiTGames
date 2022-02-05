@@ -20,6 +20,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:22.0.0")
     compileOnly("org.projectlombok:lombok:1.18.22")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+    compileOnly("com.github.luben:zstd-jni:1.5.2-1")
 
     annotationProcessor("org.projectlombok:lombok:1.18.22")
 

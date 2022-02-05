@@ -3,7 +3,6 @@ package net.gtminecraft.gitgames.server.minigame.states.impl;
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
 import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDataUpdate;
-import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
 import net.gtminecraft.gitgames.server.minigame.states.GameState;
 import net.kyori.adventure.text.Component;
@@ -19,8 +18,8 @@ import java.util.List;
 
 public class CountdownState extends GameState {
 
-	public CountdownState(MinigameManager minigameManager) {
-		super(minigameManager, GameStateUtils.COUNTDOWN_STATE_PRIORITY);
+	public CountdownState() {
+		super(GameStateUtils.COUNTDOWN_STATE_PRIORITY);
 	}
 
 	@Override
@@ -33,7 +32,7 @@ public class CountdownState extends GameState {
 
 	@Override
 	public AbstractGameState nextState() {
-		return new PreparationState(this.minigameManager);
+		return new ActiveState();
 	}
 
 	@EventHandler
@@ -46,7 +45,7 @@ public class CountdownState extends GameState {
 		this.plugin.getConnectionManager().write(new PacketPlayerDataUpdate(PlayerStatus.INACTIVE, player.getUniqueId()));
 		if (this.minigame.getNumPlayers() < this.minigameManager.getMaxPlayers()) {
 			this.minigame.cancelCountdown();
-			this.minigameManager.setState(this.minigame.getNumPlayers() == 0 ? new FinishedState(this.minigameManager) : new QueuingState(this.minigameManager));
+			this.minigameManager.setState(this.minigame.getNumPlayers() == 0 ? new FinishedState() : new QueuingState());
 		}
 	}
 

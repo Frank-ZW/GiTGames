@@ -2,7 +2,6 @@ package net.gtminecraft.gitgames.server.minigame.states.impl;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
 import net.gtminecraft.gitgames.compatability.packet.PacketGameUpdate;
-import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
 import net.gtminecraft.gitgames.server.minigame.states.GameState;
 import net.kyori.adventure.text.Component;
@@ -13,8 +12,8 @@ public class PreparationState extends GameState {
 
 	private boolean success = false;
 
-	public PreparationState(MinigameManager minigameManager) {
-		super(minigameManager, GameStateUtils.PREPARATION_STATE_PRIORITY);
+	public PreparationState() {
+		super(GameStateUtils.PREPARATION_STATE_PRIORITY);
 	}
 
 	@Override
@@ -25,7 +24,7 @@ public class PreparationState extends GameState {
 		} else {
 			Bukkit.broadcast(Component.text(ChatColor.RED + "An error occurred while loading up the world for " + this.minigame.getName() + ". You have been sent back to the lobby."));
 			this.plugin.getConnectionManager().write(new PacketGameUpdate(GameStateUtils.FINISHED_STATE_PRIORITY, this.minigame.getPlayers()));
-			this.minigameManager.setState(new InactiveState(this.minigameManager));
+			this.minigameManager.setState(new InactiveState());
 		}
 	}
 
@@ -39,6 +38,6 @@ public class PreparationState extends GameState {
 
 	@Override
 	public AbstractGameState nextState() {
-		return new ActiveState(this.minigameManager);
+		return new CountdownState();
 	}
 }

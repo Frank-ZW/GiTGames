@@ -25,7 +25,7 @@ public class VanillaManhunt extends AbstractManhunt {
 	}
 
 	@Override
-	public void handlePlayerEvent(@NotNull Event event) {
+	protected void handlePlayerEvent(@NotNull Event event) {
 		super.handlePlayerEvent(event);
 		if (event instanceof PlayerEvent) {
 			Player player = ((PlayerEvent) event).getPlayer();
@@ -51,7 +51,7 @@ public class VanillaManhunt extends AbstractManhunt {
 			}
 		} else if (event instanceof PlayerDeathEvent e) {
 			if (this.isSpeedrunner(e.getEntity().getUniqueId())) {
-				this.endMinigame(new HunterWrapper(), false);
+				this.endMinigame(new HunterWinner(), false);
 			} else {
 				e.getDrops().removeIf(this::isPlayerTracker);
 			}
@@ -61,7 +61,7 @@ public class VanillaManhunt extends AbstractManhunt {
 			}
 		} else if (event instanceof EnderDragonChangePhaseEvent e) {
 			if (e.getNewPhase() == EnderDragon.Phase.DYING) {
-				this.endMinigame(new SpeedrunnerWrapper(Bukkit.getOfflinePlayer(this.speedrunner).getName()), false);
+				this.endMinigame(new SpeedrunnerWinner(Bukkit.getOfflinePlayer(this.speedrunner).getName()), false);
 			}
 		}
 	}

@@ -3,7 +3,6 @@ package net.gtminecraft.gitgames.server.minigame.states.impl;
 import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
 import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDataUpdate;
-import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.gtminecraft.gitgames.server.minigame.states.AbstractGameState;
 import net.gtminecraft.gitgames.server.minigame.states.GameState;
 import net.kyori.adventure.text.Component;
@@ -19,8 +18,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 // The minigame will have been created by now
 public class QueuingState extends GameState {
 
-	public QueuingState(MinigameManager minigameManager) {
-		super(minigameManager, GameStateUtils.QUEUEING_STATE_PRIORITY);
+	public QueuingState() {
+		super(GameStateUtils.QUEUEING_STATE_PRIORITY);
 	}
 
 	@Override
@@ -31,7 +30,7 @@ public class QueuingState extends GameState {
 
 	@Override
 	public AbstractGameState nextState() {
-		return new CountdownState(this.minigameManager);
+		return new PreparationState();
 	}
 
 	@EventHandler
@@ -42,7 +41,7 @@ public class QueuingState extends GameState {
 		}
 
 		if (this.minigame.isPlayer(player.getUniqueId())) {
-			player.setGameMode(GameMode.SURVIVAL);
+			player.setGameMode(GameMode.ADVENTURE);
 			player.teleportAsync(this.minigame.getLobby()).thenAccept(result -> {
 				if (!result) {
 					player.sendMessage(Component.text(ChatColor.RED + "An error occurred while teleporting you to the minigame lobby. You have been sent back to the main lobby."));
@@ -52,7 +51,7 @@ public class QueuingState extends GameState {
 
 				player.getInventory().clear();
 				player.setFireTicks(0);
-				if (this.minigame.getNumPlayers() >= this.minigameManager.getMaxPlayers()) {
+				if (this.minigame.getNumPlayers() >= this.minigameManager.getMaxPlayers() && this.minigameManager.isInState(QueuingState.class)) {
 					this.minigameManager.nextState();
 				}
 			});
@@ -68,7 +67,7 @@ public class QueuingState extends GameState {
 
 		this.plugin.getConnectionManager().write(new PacketPlayerDataUpdate(PlayerStatus.INACTIVE, player.getUniqueId()));
 		if (this.minigame.getNumPlayers() == 0) {
-			this.minigameManager.setState(new FinishedState(this.minigameManager));
+			this.minigameManager.setState(new FinishedState());
 		}
 	}
 }

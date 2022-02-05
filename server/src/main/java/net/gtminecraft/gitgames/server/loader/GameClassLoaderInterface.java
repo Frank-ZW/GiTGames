@@ -6,5 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface GameClassLoaderInterface {
 
+	double getId();
 	@NotNull AbstractMinigame loadGame(@NotNull Location spawn, int gameKey);
 }

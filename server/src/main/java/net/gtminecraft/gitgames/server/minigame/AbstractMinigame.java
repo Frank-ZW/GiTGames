@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDisconnect;
 import net.gtminecraft.gitgames.server.CorePlugin;
-import net.gtminecraft.gitgames.server.event.MinigameEndEvent;
+import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.gtminecraft.gitgames.server.util.ItemUtil;
 import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import net.kyori.adventure.text.Component;
@@ -52,8 +52,9 @@ public abstract class AbstractMinigame implements Listener {
 	protected final List<UUID> players = new ArrayList<>();
 	protected final List<UUID> spectators = new ArrayList<>();
 	protected final Random random = new Random();
-	protected WinnerWrapper winner = new EmptyWinnerWrapper();
+	protected WinnerInterface winner = new EmptyWinner();
 	protected BukkitTask countdown;
+	protected BukkitTask finished;
 	@Getter
 	@Setter
 	protected Difficulty difficulty;
@@ -109,10 +110,26 @@ public abstract class AbstractMinigame implements Listener {
 	}
 
 	/**
+	 * Returns a collection of only the active players in the game. This method can safely be used during the
+	 * queuing, preparation, and countdown stage. To get all players during an active game, use {@link #getAllPlayers()}
+	 *
 	 * @return	The collection of player UUIDs backing the game.
 	 */
 	public Collection<UUID> getPlayers() {
 		return this.players;
+	}
+
+	/**
+	 * Returns all players associated with the game, including spectators and active participants. This method can be
+	 * called whenever. To get only the players playing in the game, use {@link #getPlayers()}
+	 *
+	 * @return	The collection of all in-game players and spectator UUIDs
+	 */
+	public Collection<UUID> getAllPlayers() {
+		Collection<UUID> all = new ArrayList<>(this.players.size() + this.spectators.size());
+		all.addAll(this.players);
+		all.addAll(this.spectators);
+		return all;
 	}
 
 	/**
@@ -175,6 +192,25 @@ public abstract class AbstractMinigame implements Listener {
 	}
 
 	/**
+	 * @return	True if the delayed finished-minigame task is running, false otherwise.
+	 */
+	public boolean isFinishedTaskRunning() {
+		return this.finished != null && !this.finished.isCancelled();
+	}
+
+	/**
+	 * Cancels the active finished runnable and forwards the next state of the game {@link MinigameManager#nextState()}.
+	 * This method should only be called if the minigame has already ended and an interruption has occurred, so the
+	 * {@link #endTeleport()} method has to be called instantaneously.
+	 */
+	public void runFinishedTaskNow() {
+		if (this.isFinishedTaskRunning()) {
+			this.finished.cancel();
+			this.plugin.getMinigameManager().nextState();
+		}
+	}
+
+	/**
 	 * Clears all internal game data for players and spectators as well as cancelling all ongoing tasks originally
 	 * started by the minigame and setting all timestamps and game keys to their minimum value.
 	 *
@@ -189,6 +225,13 @@ public abstract class AbstractMinigame implements Listener {
 	}
 
 	// Use this method only during or after countdown state, else get the backing player list and remove the UUID manually
+
+	/**
+	 * Removes the player from the minigame and checks if the game should end. This method should only be called during
+	 * the active state of the game
+	 *
+	 * @param player	The player to be removed.
+	 */
 	public void removePlayer(Player player) {
 		this.players.remove(player.getUniqueId());
 		if (this.spectators.remove(player.getUniqueId())) {
@@ -198,6 +241,12 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
+	/**
+	 * Hides the specified player from other spectators and in-game players, as well as adds the spectator to the
+	 * minigame cache. This method should only be called to add a new spectator to the minigame.
+	 *
+	 * @param player	The player to be hidden from others.
+	 */
 	public void hideSpectator(@NotNull Player player) {
 		for (UUID uniqueId : this.players) {
 			Player other = Bukkit.getPlayer(uniqueId);
@@ -208,7 +257,6 @@ public abstract class AbstractMinigame implements Listener {
 			other.hidePlayer(this.plugin, player);
 		}
 
-		this.players.add(player.getUniqueId());
 		this.spectators.add(player.getUniqueId());
 	}
 
@@ -261,21 +309,21 @@ public abstract class AbstractMinigame implements Listener {
 		return Component.text(ChatColor.translateAlternateColorCodes('&', prefix) + ChatColor.RESET).append(this.isSpectator(player.getUniqueId()) ? Component.text(ChatColor.BLUE + player.getName()) : this.gameDisplayName(player));
 	}
 
-	public void endMinigame(@NotNull WinnerWrapper winner, boolean urgently) {
-		if (this.winner.getClass() != EmptyWinnerWrapper.class) {
+	public void endMinigame(@NotNull AbstractMinigame.WinnerInterface winner, boolean urgently) {
+		if (this.winner.getClass() != EmptyWinner.class) {
 			return;
 		}
 
 		this.winner = winner;
 		Bukkit.broadcast(this.winner.announce());
-		Bukkit.getPluginManager().callEvent(new MinigameEndEvent(this.players, urgently));
+		this.finished = Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.plugin.getMinigameManager().nextState(), urgently ? 0L : 200L);
 	}
 
 	public void deleteWorlds(boolean urgently) {
 		if (urgently) {
 			this.deleteWorlds();
 		} else {
-			Bukkit.getScheduler().runTaskLater(this.plugin, (Runnable) this::deleteWorlds, (long) (20 * Math.ceil(1.5 * this.getNumPlayers())));
+			Bukkit.getScheduler().runTaskLater(this.plugin, (Runnable) this::deleteWorlds, (long) (20 * Math.ceil(2 * this.getNumPlayers())));
 		}
 	}
 
@@ -390,7 +438,7 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
-	public abstract void handlePlayerEvent(@NotNull Event event);
+	protected abstract void handlePlayerEvent(@NotNull Event event);
 	public abstract void startTeleport();
 	public abstract void endTeleport();
 	public abstract boolean createWorlds();
@@ -419,11 +467,11 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
-	public interface WinnerWrapper {
+	public interface WinnerInterface {
 		@NotNull Component announce();
 	}
 
-	public static final class EmptyWinnerWrapper implements WinnerWrapper {
+	public static final class EmptyWinner implements WinnerInterface {
 
 		@Override
 		public @NotNull Component announce() {
@@ -431,7 +479,7 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
-	public record GeneralErrorWrapper(String message) implements WinnerWrapper {
+	public record GeneralErrorInterruption(String message) implements WinnerInterface {
 
 		@Override
 		public @NotNull Component announce() {

@@ -1,5 +1,6 @@
 package net.gtminecraft.gitgames.server.map;
 
+import net.gtminecraft.gitgames.server.CorePlugin;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -16,10 +17,13 @@ public class LoadableGameMap implements GameMapInterface {
 	private File activeWorldFolder;
 	private World world;
 
-	public LoadableGameMap(File worldFolder, String worldName, boolean loadOnInit) {
-		this.sourceWorldFolder = new File(worldFolder, worldName);
+	public LoadableGameMap(File worldsFolder, @NotNull String worldName, boolean loadOnInit) {
+		this.sourceWorldFolder = new File(worldsFolder, worldName);
 		if (loadOnInit) {
-			this.load();
+			Bukkit.getScheduler().callSyncMethod(CorePlugin.getInstance(), () -> {
+				this.load();
+				return null;
+			});
 		}
 	}
 

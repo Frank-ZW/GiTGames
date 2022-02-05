@@ -7,13 +7,12 @@ import org.bukkit.event.Listener;
 
 public abstract class AbstractGameState implements Listener {
 
-	protected final CorePlugin plugin;
+	protected final CorePlugin plugin = CorePlugin.getInstance();
 	protected final MinigameManager minigameManager;
 	protected final int priority;
 
-	public AbstractGameState(MinigameManager minigameManager, int priority) {
-		this.plugin = minigameManager.getPlugin();
-		this.minigameManager = minigameManager;
+	public AbstractGameState(int priority) {
+		this.minigameManager = this.plugin.getMinigameManager();
 		this.priority = priority;
 	}
 

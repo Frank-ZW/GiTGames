@@ -2,6 +2,7 @@ package net.gtminecraft.gitgames.server.connection;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import lombok.AllArgsConstructor;
 import net.gtminecraft.gitgames.compatability.PipelineUtils;
 import net.gtminecraft.gitgames.compatability.Protocol;
@@ -19,10 +20,11 @@ public class PipelineBase extends ChannelInitializer<Channel> {
 
 	@Override
 	protected void initChannel(@NotNull Channel channel) {
+		channel.config().setOption(ChannelOption.TCP_NODELAY, true);
 		PipelineUtils.BASE.initChannel(channel);
 		channel.pipeline()
-				.addBefore(PipelineUtils.TIMEOUT_HANDLER, PipelineUtils.PACKET_DECODER, new PacketDecoder(Protocol.HANDSHAKE, false))
-				.addBefore(PipelineUtils.BOSS_HANDLER, PipelineUtils.PACKET_ENCODER, new PacketEncoder(Protocol.HANDSHAKE, false));
+				.addAfter(PipelineUtils.FRAME_DECODER, PipelineUtils.PACKET_DECODER, new PacketDecoder(Protocol.HANDSHAKE, false))
+				.addAfter(PipelineUtils.FRAME_PREPENDER, PipelineUtils.PACKET_ENCODER, new PacketEncoder(Protocol.HANDSHAKE, false));
 		channel.pipeline().get(PacketBossHandler.class).setPacketHandler(new DownstreamBridge(this.plugin));
 	}
 }

@@ -1,6 +1,5 @@
 package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
-import lombok.RequiredArgsConstructor;
 import net.gtminecraft.gitgames.server.minigame.functional.PlayerTrackerHandler;
 import net.gtminecraft.gitgames.server.minigame.type.AbstractSurvivalMinigame;
 import net.gtminecraft.gitgames.server.minigame.functional.IPlayerTracker;
@@ -52,12 +51,12 @@ public abstract class AbstractManhunt extends AbstractSurvivalMinigame implement
 	public void removePlayer(Player player) {
 		super.removePlayer(player);
 		if (this.isSpeedrunner(player.getUniqueId())) {
-			this.endMinigame(new HunterWrapper(), false);
+			this.endMinigame(new HunterWinner(), false);
 			return;
 		}
 
 		if (this.hunters.remove(player.getUniqueId()) && this.hunters.isEmpty()) {
-			this.endMinigame(new SpeedrunnerWrapper(Bukkit.getOfflinePlayer(this.speedrunner).getName()), false);
+			this.endMinigame(new SpeedrunnerWinner(Bukkit.getOfflinePlayer(this.speedrunner).getName()), false);
 		}
 	}
 
@@ -76,7 +75,7 @@ public abstract class AbstractManhunt extends AbstractSurvivalMinigame implement
 	public void startTeleport() {
 		Player player = this.getSpeedrunnerAsPlayer();
 		if (player == null) {
-			this.endMinigame(new GeneralErrorWrapper(ChatColor.RED + "An error occurred while selecting the speedrunner. Contact an administrator if this occurs."), true);
+			this.endMinigame(new GeneralErrorInterruption(ChatColor.RED + "An error occurred while selecting the speedrunner. Contact an administrator if this occurs."), true);
 			return;
 		}
 
@@ -125,17 +124,14 @@ public abstract class AbstractManhunt extends AbstractSurvivalMinigame implement
 		return this.trackerHandler.createPlayerTracker();
 	}
 
-	@RequiredArgsConstructor
-	public static final class SpeedrunnerWrapper implements WinnerWrapper {
-
-		private final String name;
+	public record SpeedrunnerWinner(String name) implements WinnerInterface {
 
 		@Override
 		public @NotNull Component announce() {
 			return Component.text(ChatColor.GREEN + this.name + " has won the Manhunt.");
 		}
 	}
-	public final class HunterWrapper implements WinnerWrapper {
+	public final class HunterWinner implements WinnerInterface {
 
 		@Override
 		public @NotNull Component announce() {

@@ -54,7 +54,7 @@ public class MinigameManager implements Listener {
 
 	public MinigameManager(CorePlugin plugin) {
 		this.plugin = plugin;
-		this.setState(new InactiveState(this));
+		this.setState(new InactiveState());
 	}
 
 	public void disable() {
@@ -63,12 +63,20 @@ public class MinigameManager implements Listener {
 			Bukkit.getConsoleSender().sendMessage(Component.text(ChatColor.GREEN + "No active minigame detected... skipping straight to protocol disconnection."));
 		} else {
 			if (this.isInState(ActiveState.class)) {
-				this.minigame.endMinigame(new AbstractMinigame.GeneralErrorWrapper(ChatColor.GREEN + "The server you were on has disconnected from the network. If you believe the server crashed, contact an administrator."), true);
-			} else if (this.isInState(FinishedState.class)) {
-				this.minigame.endTeleport();
-				this.minigame.deleteWorlds(true);
+				if (this.minigame.isFinishedTaskRunning()) {
+					this.minigame.runFinishedTaskNow();
+				} else {
+					this.minigame.endMinigame(new AbstractMinigame.GeneralErrorInterruption(ChatColor.GREEN + "The server you were on has disconnected from the network. If you believe the server crashed, contact an administrator."), true);
+				}
 			} else {
-				this.minigame.deleteWorlds(true);
+				if (this.isInState(CountdownState.class)) {
+					this.minigame.cancelCountdown();
+				}
+
+				this.minigame.endTeleport();
+				if (this.minigame.worldsLoaded()) {
+					this.minigame.deleteWorlds(true);
+				}
 			}
 
 			this.minigame = null;
@@ -116,27 +124,33 @@ public class MinigameManager implements Listener {
 			return;
 		}
 
-		if (this.isInState(ActiveState.class) || this.isInState(FinishedState.class)) {
-			if (this.isInState(ActiveState.class)) {
-				this.minigame.endMinigame(new AbstractMinigame.GeneralErrorWrapper(ChatColor.GREEN + "The " + this.minigame.getName() + " you were in was forcefully ended."), true);
+		if (this.isInState(ActiveState.class)) {
+			if (this.minigame.isFinishedTaskRunning()) {
+				this.minigame.runFinishedTaskNow();
+			} else {
+				this.minigame.endMinigame(new AbstractMinigame.GeneralErrorInterruption(ChatColor.GREEN + "The " + this.minigame.getName() + " you were in was forcefully ended."), true);
+				this.minigame.endTeleport();
+				this.minigame.deleteWorlds(true);
 			}
-
-			this.minigame.endTeleport();
-			this.minigame.deleteWorlds();
 		} else {
 			if (this.isInState(CountdownState.class)) {
 				this.minigame.cancelCountdown();
 			}
 
-			if (this.minigame.getNumPlayers() == 0) {
-				return;
+			if (this.minigame.getNumPlayers() != 0) {
+				this.plugin.getConnectionManager().write(new PacketGameUpdate(GameStateUtils.FINISHED_STATE_PRIORITY, this.minigame.getPlayers()));
 			}
 
-			this.plugin.getConnectionManager().write(new PacketGameUpdate(GameStateUtils.FINISHED_STATE_PRIORITY, this.minigame.getPlayers()));
+			this.setState(new FinishedState());
 		}
 	}
 
-	public void createMinigame(int gameId, int gameKey, int maxPlayers) {
+	/**
+	 * @param gameId		The id of the associated game to create, {@link net.gtminecraft.gitgames.compatability.mechanics.GameClassifiers}
+	 * @param gameKey		The unique game key identifier for the current minigame session
+	 * @param maxPlayers	The maximum number of players the minigame can accommodate
+	 */
+	public void createMinigame(double gameId, int gameKey, int maxPlayers) {
 		if (this.minigame != null && !this.isInState(InactiveState.class)) {
 			Bukkit.getLogger().warning("Cancelled an attempt to override an active minigame. Contact the developer if this occurs.");
 			return;
@@ -149,8 +163,7 @@ public class MinigameManager implements Listener {
 		}
 
 		this.minigame = loaderInterface.loadGame(this.plugin.getSettings().getLobby(), gameKey);
-		Bukkit.getLogger().info(ChatColor.GREEN + "Creating new " + this.minigame.getName() + " with game key of " + gameKey);
-		this.maxPlayers = maxPlayers;
+		Bukkit.getLogger().info(ChatColor.GREEN + "Creating new " + this.minigame.getName() + " with game key of " + gameKey);		this.maxPlayers = maxPlayers;
 		this.nextState();
 	}
 
@@ -167,8 +180,8 @@ public class MinigameManager implements Listener {
 
 				player.teleportAsync(target.getLocation()).thenAccept(result -> {
 					if (result) {
-						this.minigame.hideSpectator(player);
 						PlayerUtil.setSpectator(player);
+						this.minigame.hideSpectator(player);
 						player.sendMessage(ChatColor.GREEN + "You are now spectating " + target.getName() + ".");
 					} else {
 						player.sendMessage(ChatColor.RED + "Failed to teleport you to " + target.getName() + ". You have been connected back to the lobby.");
