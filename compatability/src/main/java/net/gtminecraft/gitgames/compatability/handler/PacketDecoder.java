@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import lombok.AllArgsConstructor;
 import lombok.Setter;
 import net.gtminecraft.gitgames.compatability.DefinedPacket;
 import net.gtminecraft.gitgames.compatability.Protocol;
@@ -15,12 +14,16 @@ import net.gtminecraft.gitgames.compatability.wrapper.PacketWrapper;
 import java.util.Arrays;
 import java.util.List;
 
-@AllArgsConstructor
 public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
 
 	@Setter
 	private Protocol protocol;
 	private final boolean server;
+
+	public PacketDecoder(Protocol protocol, boolean server) {
+		this.protocol = protocol;
+		this.server = server;
+	}
 
 	@Override
 	protected void decode(ChannelHandlerContext context, ByteBuf input, List<Object> out) {
@@ -33,7 +36,7 @@ public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
 					DefinedPacket packet = directionData.createPacket(packetId);
 					if (packet != null) {
 						if (packet instanceof PacketCreateGame) {
-							System.out.println("! ! ! Got PacketCreateGame with " + Arrays.toString(ByteBufUtil.getBytes(input)));
+							System.out.printf("%s: %s --> %s%n", this.getClass().getSimpleName(), packet.getClass().getSimpleName(), Arrays.toString(ByteBufUtil.getBytes(input)));
 						}
 
 						packet.read(input, directionData.getDirection());

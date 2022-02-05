@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class PacketCreateGame extends DefinedPacket {
 
 	@Getter
-	private int gameId;
+	private double gameId;
 	@Getter
 	private int gameKey;
 	@Getter
@@ -23,18 +23,18 @@ public class PacketCreateGame extends DefinedPacket {
 
 	@Override
 	public void read(ByteBuf buf) {
-		System.out.printf("! ! ! Read %s", Arrays.toString(ByteBufUtil.getBytes(buf)));
-		this.gameId = buf.readByte();
+		this.gameId = buf.readDouble();
 		this.gameKey = DefinedPacket.readVarInt(buf);
 		this.maxPlayers = DefinedPacket.readVarInt(buf);
+		System.out.printf("%s --> %s%n", this.getClass().getSimpleName(), Arrays.toString(ByteBufUtil.getBytes(buf)));
 	}
 
 	@Override
 	public void write(ByteBuf buf) {
-		buf.writeByte(this.gameId);
+		buf.writeDouble(this.gameId);
 		DefinedPacket.writeVarInt(buf, this.gameKey);
 		DefinedPacket.writeVarInt(buf, this.maxPlayers);
-		System.out.printf("! ! ! Wrote %s", Arrays.toString(ByteBufUtil.getBytes(buf)));
+		System.out.printf("%s --> %s%n", this.getClass().getSimpleName(), Arrays.toString(ByteBufUtil.getBytes(buf)));
 	}
 
 	@Override
