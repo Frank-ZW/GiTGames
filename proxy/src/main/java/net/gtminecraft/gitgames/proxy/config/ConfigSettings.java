@@ -3,7 +3,6 @@ package net.gtminecraft.gitgames.proxy.config;
 import lombok.Getter;
 import net.gtminecraft.gitgames.compatability.mechanics.ServerType;
 import net.gtminecraft.gitgames.proxy.CoreProxyPlugin;
-import net.gtminecraft.gitgames.proxy.data.ServerData;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;

@@ -52,7 +52,7 @@ public class HandshakeHandler extends PacketHandler {
 	public void handle(PacketHandshake packet) {
 		ServerInfo server = this.plugin.getProxy().getServerInfo(packet.getName());
 		if (server == null) {
-			this.channelWrapper.write(packet);
+			this.channelWrapper.write(new PacketHandshake(false));
 			return;
 		}
 

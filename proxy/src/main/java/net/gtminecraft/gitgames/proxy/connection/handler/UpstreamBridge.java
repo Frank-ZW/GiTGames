@@ -69,7 +69,7 @@ public class UpstreamBridge extends PacketHandler {
 		minigameServerData.setGameStatus(status);
 		switch (packet.getPriority()) {
 			case GameStateUtils.INACTIVE_STATE_PRIORITY:
-				minigameServerData.setGameType(GameType.INACTIVE);
+				minigameServerData.setGameType(GameClassifiers.INACTIVE_CLASSIFIER);
 				break;
 			case GameStateUtils.ACTIVE_STATE_PRIORITY:
 				for (UUID uniqueId : packet.getPlayers()) {

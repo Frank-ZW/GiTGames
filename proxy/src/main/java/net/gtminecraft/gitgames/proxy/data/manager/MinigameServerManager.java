@@ -3,11 +3,10 @@ package net.gtminecraft.gitgames.proxy.data.manager;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.RequiredArgsConstructor;
+import net.gtminecraft.gitgames.compatability.mechanics.AbstractGameClassifier;
 import net.gtminecraft.gitgames.compatability.mechanics.GameStatus;
-import net.gtminecraft.gitgames.compatability.mechanics.GameType;
 import net.gtminecraft.gitgames.compatability.packet.PacketCreateGame;
 import net.gtminecraft.gitgames.compatability.packet.PacketServerAction;
-import net.gtminecraft.gitgames.proxy.CoreProxyPlugin;
 import net.gtminecraft.gitgames.proxy.data.MinigameServerData;
 import net.gtminecraft.gitgames.proxy.data.ServerData;
 
@@ -19,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class MinigameServerManager {
 
-	private final CoreProxyPlugin plugin;
 	private final ServerManager serverManager;
 	private final Random random;
 	private final List<MinigameServerData> minigames = new ArrayList<>();
@@ -44,11 +42,11 @@ public class MinigameServerManager {
 		this.inactives.remove(serverData);
 	}
 
-	public ServerData randomlySelectServer(GameType type, int maxPlayers) {
+	public ServerData randomlySelectServer(AbstractGameClassifier type, int maxPlayers) {
 		int i = 0;
 		MinigameServerData serverData = null;
 		for (MinigameServerData filter : this.minigames) {
-			if (filter.getMaxPlayers() != maxPlayers || filter.getGameType() != type || filter.getServer().getPlayers().size() >= maxPlayers) {
+			if (filter.getMaxPlayers() != maxPlayers || filter.getGameType().getId() != type.getId() || filter.getServer().getPlayers().size() >= maxPlayers) {
 				continue;
 			}
 
@@ -71,7 +69,7 @@ public class MinigameServerManager {
 
 			int gameKey = this.gameKeyGenerator.getAndIncrement();
 			serverData = this.inactives.remove(0);
-			serverData.write(new PacketCreateGame(type.ordinal(), gameKey, maxPlayers));
+			serverData.write(new PacketCreateGame(type.getId(), gameKey, maxPlayers));
 			serverData.setGameKey(gameKey);
 			serverData.setGameStatus(GameStatus.WAITING);
 			serverData.setGameType(type);

@@ -1,6 +1,7 @@
 package net.gtminecraft.gitgames.proxy;
 
 import lombok.Getter;
+import net.gtminecraft.gitgames.proxy.command.ForceEndCommand;
 import net.gtminecraft.gitgames.proxy.command.PlayCommand;
 import net.gtminecraft.gitgames.proxy.command.ServerStatusCommand;
 import net.gtminecraft.gitgames.proxy.command.ShutdownCommand;
@@ -9,6 +10,7 @@ import net.gtminecraft.gitgames.proxy.data.manager.PlayerManager;
 import net.gtminecraft.gitgames.proxy.listener.PlayerListeners;
 import net.gtminecraft.gitgames.proxy.runnable.NetworkShutdownRunnable;
 import net.gtminecraft.gitgames.proxy.data.manager.ServerManager;
+import net.gtminecraft.gitgames.proxy.shutdown.Closeable;
 import net.gtminecraft.gitgames.proxy.util.StringUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -21,9 +23,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class CoreProxyPlugin extends Plugin {
+public class CoreProxyPlugin extends Plugin implements Closeable {
 
-	private final List<Command> commands = Arrays.asList(new ServerStatusCommand(this), new ShutdownCommand(this), new PlayCommand(this));
+	private final List<Command> commands = Arrays.asList(new ServerStatusCommand(this), new ShutdownCommand(this), new PlayCommand(this), new ForceEndCommand(this));
 
 	@Getter
 	private PlayerManager playerManager;
@@ -77,6 +79,7 @@ public class CoreProxyPlugin extends Plugin {
 		}
 	}
 
+	@Override
 	public void cancelShutdown(String who) {
 		if (this.shutdown != null) {
 			this.shutdown.cancel();
@@ -88,6 +91,7 @@ public class CoreProxyPlugin extends Plugin {
 		}
 	}
 
+	@Override
 	public void scheduleShutdown(int duration) {
 		this.getProxy().broadcast(StringUtil.EMPTY_STRING);
 		if (this.shutdown != null) {

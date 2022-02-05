@@ -9,6 +9,7 @@ import net.gtminecraft.gitgames.compatability.packet.PacketKeepAlive;
 import net.gtminecraft.gitgames.compatability.packet.PacketServerDisconnect;
 import net.gtminecraft.gitgames.compatability.wrapper.ChannelWrapper;
 import net.gtminecraft.gitgames.proxy.CoreProxyPlugin;
+import net.gtminecraft.gitgames.proxy.shutdown.Closeable;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.scheduler.ScheduledTask;
@@ -18,7 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class ServerData {
+public class ServerData implements Closeable {
 
 	@Getter
 	private final ServerInfo server;
@@ -63,10 +64,12 @@ public class ServerData {
 		this.channelWrapper.write(new PacketKeepAlive(this.id));
 	}
 
+	@Override
 	public void scheduleShutdown(int duration) {
 		this.write(new PacketShutdown("", duration, PacketShutdown.ShutdownAction.START));
 	}
 
+	@Override
 	public void cancelShutdown(String who) {
 		this.write(new PacketShutdown(who, -1, PacketShutdown.ShutdownAction.CANCEL));
 	}

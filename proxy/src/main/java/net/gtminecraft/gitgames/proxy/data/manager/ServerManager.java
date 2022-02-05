@@ -10,9 +10,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.Getter;
 import net.gtminecraft.gitgames.compatability.DefinedPacket;
-import net.gtminecraft.gitgames.compatability.mechanics.GameType;
-import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
-import net.gtminecraft.gitgames.compatability.mechanics.ServerType;
+import net.gtminecraft.gitgames.compatability.mechanics.*;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerQueue;
 import net.gtminecraft.gitgames.compatability.packet.PacketServerDisconnect;
 import net.gtminecraft.gitgames.compatability.wrapper.ChannelWrapper;
@@ -37,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Phaser;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -59,7 +56,7 @@ public class ServerManager {
 
 	public ServerManager(CoreProxyPlugin plugin) {
 		this.plugin = plugin;
-		this.minigamesManager = new MinigameServerManager(plugin, this, this.random);
+		this.minigamesManager = new MinigameServerManager(this, this.random);
 		this.channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 		this.phaser = new Phaser(0);
 		this.scheduler = plugin.getProxy().getScheduler();
@@ -147,14 +144,17 @@ public class ServerManager {
 		return serverTypes.isEmpty() ? null : serverTypes.get(this.random.nextInt(serverTypes.size()));
 	}
 
-	public GameType retrieveMinigame(@NotNull ProxiedPlayer player, String name, int maxPlayers) {
+	public AbstractGameClassifier retrieveMinigame(@NotNull ProxiedPlayer player, String name, int maxPlayers) {
 		boolean valid = false;
-		GameType type = switch (name.toLowerCase()) {
+		AbstractGameClassifier type = switch (name.toLowerCase()) {
 			case "manhunt":
 				valid = maxPlayers == 1 ? player.hasPermission(String.format(StringUtil.SOLO_MINIGAME_COMMAND, "manhunt")) : maxPlayers >= 2 && maxPlayers <= 5;
-				yield GameType.MANHUNT;
+				yield GameClassifiers.VANILLA_MANHUNT_CLASSIFIER;
+			case "spleef":
+				valid = true;
+				yield GameClassifiers.SPLEEF_CLASSIFIER;
 			default:
-				yield GameType.INACTIVE;
+				yield GameClassifiers.INACTIVE_CLASSIFIER;
 		};
 
 		if (!valid) {
@@ -166,8 +166,8 @@ public class ServerManager {
 
 	public void queuePlayer(@NotNull PlayerData playerData, String name, int maxPlayers) {
 		ProxiedPlayer player = playerData.getPlayer();
-		GameType type = this.retrieveMinigame(player, name, maxPlayers);
-		if (type == GameType.INACTIVE) {
+		AbstractGameClassifier type = this.retrieveMinigame(player, name, maxPlayers);
+		if (GameClassifiers.INACTIVE_CLASSIFIER.equals(type)) {
 			return;
 		}
 

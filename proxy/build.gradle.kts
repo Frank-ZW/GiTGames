@@ -11,11 +11,12 @@ repositories {
 }
 
 dependencies {
+    compileOnly("io.github.waterfallmc:waterfall-api:1.18-R0.1-SNAPSHOT")
+
     compileOnly("io.netty:netty-all:4.1.73.Final")
     compileOnly("org.jetbrains:annotations:22.0.0")
     compileOnly("org.projectlombok:lombok:1.18.22")
     annotationProcessor("org.projectlombok:lombok:1.18.22")
-    compileOnly("io.github.waterfallmc:waterfall-api:1.18-R0.1-SNAPSHOT")
 
     testCompileOnly("org.projectlombok:lombok:1.18.22")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
