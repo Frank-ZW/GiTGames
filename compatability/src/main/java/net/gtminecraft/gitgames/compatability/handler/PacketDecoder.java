@@ -1,17 +1,14 @@
 package net.gtminecraft.gitgames.compatability.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import lombok.Setter;
 import net.gtminecraft.gitgames.compatability.DefinedPacket;
 import net.gtminecraft.gitgames.compatability.Protocol;
 import net.gtminecraft.gitgames.compatability.exception.BadPacketException;
-import net.gtminecraft.gitgames.compatability.packet.PacketCreateGame;
 import net.gtminecraft.gitgames.compatability.wrapper.PacketWrapper;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
@@ -35,10 +32,6 @@ public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
 					int packetId = DefinedPacket.readVarInt(input);
 					DefinedPacket packet = directionData.createPacket(packetId);
 					if (packet != null) {
-						if (packet instanceof PacketCreateGame) {
-							System.out.printf("%s: %s --> %s%n", this.getClass().getSimpleName(), packet.getClass().getSimpleName(), Arrays.toString(ByteBufUtil.getBytes(input)));
-						}
-
 						packet.read(input, directionData.getDirection());
 						if (input.isReadable()) {
 							throw new BadPacketException("Did not read all bytes from packet " + packet.getClass().getSimpleName() + " with ID " + packetId);

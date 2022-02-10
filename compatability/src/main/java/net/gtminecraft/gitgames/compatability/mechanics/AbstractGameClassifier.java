@@ -9,6 +9,7 @@ public abstract class AbstractGameClassifier {
 	@Getter
 	protected final String name;
 	@Getter
-	protected final double id;
+	protected final int classifierId;
 
+	public abstract int playerThreshold(int maxPlayers);
 }

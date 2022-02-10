@@ -7,4 +7,9 @@ public class InactiveClassifier extends AbstractGameClassifier {
 	public InactiveClassifier() {
 		super("Inactive", 0);
 	}
+
+	@Override
+	public int playerThreshold(int maxPlayers) {
+		return -1;
+	}
 }

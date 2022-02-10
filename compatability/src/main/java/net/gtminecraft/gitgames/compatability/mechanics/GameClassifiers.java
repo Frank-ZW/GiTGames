@@ -6,7 +6,14 @@ import net.gtminecraft.gitgames.compatability.mechanics.type.SpleefClassifier;
 
 public class GameClassifiers {
 
-	public static final AbstractGameClassifier INACTIVE_CLASSIFIER = new InactiveClassifier();
-	public static final AbstractGameClassifier VANILLA_MANHUNT_CLASSIFIER = new ManhuntClassifier();
-	public static final AbstractGameClassifier SPLEEF_CLASSIFIER = new SpleefClassifier();
+	public static final AbstractGameClassifier[] CLASSIFIERS = new AbstractGameClassifier[Byte.MAX_VALUE];
+	public static final AbstractGameClassifier INACTIVE = new InactiveClassifier();
+	public static final AbstractGameClassifier MANHUNT = new ManhuntClassifier();
+	public static final AbstractGameClassifier SPLEEF = new SpleefClassifier();
+
+	static {
+		CLASSIFIERS[INACTIVE.getClassifierId()] = INACTIVE;
+		CLASSIFIERS[MANHUNT.getClassifierId()] = MANHUNT;
+		CLASSIFIERS[SPLEEF.getClassifierId()] = SPLEEF;
+	}
 }
