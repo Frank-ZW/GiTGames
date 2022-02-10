@@ -13,7 +13,7 @@ proxy/build
 
 server/.gradle
 server/build
-server/src/main/resources/mapdata
+server/src/main/resources/mapdata/\*
 
 service/.gradle
 service/build
