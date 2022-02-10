@@ -125,13 +125,14 @@ public class ServerManager {
 			if (serverType == ServerType.MINIGAME) {
 				serverData = new MinigameServerData(this.plugin, serverInfo, channelWrapper, this.serverIdGenerator.getAndIncrement());
 				this.minigamesManager.register((MinigameServerData) serverData);
+				this.plugin.getProxy().getConsole().sendMessage(new TextComponent(ChatColor.YELLOW + "The minigame server " + ChatColor.LIGHT_PURPLE + serverData.getServer().getName() + ChatColor.YELLOW + " has been registered to the network."));
 			} else {
 				serverData = new ServerData(this.plugin, serverInfo, channelWrapper, this.serverIdGenerator.getAndIncrement(), serverType);
+				this.plugin.getProxy().getConsole().sendMessage(new TextComponent(ChatColor.YELLOW + "The server " + ChatColor.LIGHT_PURPLE + serverData.getServer().getName() + ChatColor.YELLOW + " has been registered to the network."));
 			}
 
 			this.servers.put(serverInfo.getName(), serverData);
 			this.phaser.register();
-			this.plugin.getProxy().getConsole().sendMessage(new TextComponent(ChatColor.LIGHT_PURPLE + serverData.getServer().getName() + ChatColor.YELLOW + "(" + serverData.getClass().getSimpleName() + ")" + " has been registered to " + ChatColor.LIGHT_PURPLE + "GiTGames" + ChatColor.YELLOW + "."));
 			return serverData;
 		}
 
@@ -149,12 +150,12 @@ public class ServerManager {
 		AbstractGameClassifier type = switch (name.toLowerCase()) {
 			case "manhunt":
 				valid = maxPlayers == 1 ? player.hasPermission(String.format(StringUtil.SOLO_MINIGAME_COMMAND, "manhunt")) : maxPlayers >= 2 && maxPlayers <= 5;
-				yield GameClassifiers.VANILLA_MANHUNT_CLASSIFIER;
+				yield GameClassifiers.MANHUNT;
 			case "spleef":
-				valid = true;
-				yield GameClassifiers.SPLEEF_CLASSIFIER;
+				valid = maxPlayers > 1;
+				yield GameClassifiers.SPLEEF;
 			default:
-				yield GameClassifiers.INACTIVE_CLASSIFIER;
+				yield GameClassifiers.INACTIVE;
 		};
 
 		if (!valid) {
@@ -167,7 +168,7 @@ public class ServerManager {
 	public void queuePlayer(@NotNull PlayerData playerData, String name, int maxPlayers) {
 		ProxiedPlayer player = playerData.getPlayer();
 		AbstractGameClassifier type = this.retrieveMinigame(player, name, maxPlayers);
-		if (GameClassifiers.INACTIVE_CLASSIFIER.equals(type)) {
+		if (GameClassifiers.INACTIVE.equals(type)) {
 			return;
 		}
 

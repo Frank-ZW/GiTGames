@@ -29,7 +29,7 @@ public class ServerData implements Closeable {
 	@Getter
 	private final ScheduledTask keepAliveTask;
 	@Getter
-	private final Set<ProxiedPlayer> pendingDisconnections = new HashSet<>();
+	private final Set<ProxiedPlayer> pendingDisconnections = new HashSet<>();		// Only used for shutting down server
 	@Getter
 	private final int serverId;
 	@Getter

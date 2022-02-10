@@ -25,7 +25,7 @@ public class MinigameServerData extends ServerData {
 	public MinigameServerData(CoreProxyPlugin plugin, ServerInfo server, ChannelWrapper channelWrapper, int serverId) {
 		super(plugin, server, channelWrapper, serverId, ServerType.MINIGAME);
 		this.maxPlayers = 0;
-		this.gameType = GameClassifiers.INACTIVE_CLASSIFIER;
+		this.gameType = GameClassifiers.INACTIVE;
 		this.gameStatus = GameStatus.WAITING;
 	}
 }

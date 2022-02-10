@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.RequiredArgsConstructor;
 import net.gtminecraft.gitgames.compatability.mechanics.AbstractGameClassifier;
+import net.gtminecraft.gitgames.compatability.mechanics.GameClassifiers;
 import net.gtminecraft.gitgames.compatability.mechanics.GameStatus;
 import net.gtminecraft.gitgames.compatability.packet.PacketCreateGame;
 import net.gtminecraft.gitgames.compatability.packet.PacketServerAction;
@@ -28,6 +29,7 @@ public class MinigameServerManager {
 	public void requeue(MinigameServerData serverData) {
 		serverData.setMaxPlayers(0);
 		serverData.setGameKey(Integer.MIN_VALUE);
+		serverData.setGameType(GameClassifiers.INACTIVE);
 		this.actives.values().remove(serverData);
 		this.inactives.add(serverData);
 	}
@@ -46,7 +48,7 @@ public class MinigameServerManager {
 		int i = 0;
 		MinigameServerData serverData = null;
 		for (MinigameServerData filter : this.minigames) {
-			if (filter.getMaxPlayers() != maxPlayers || filter.getGameType().getId() != type.getId() || filter.getServer().getPlayers().size() >= maxPlayers) {
+			if (filter.getMaxPlayers() != maxPlayers || filter.getGameType().getClassifierId() != type.getClassifierId() || filter.getServer().getPlayers().size() >= maxPlayers) {
 				continue;
 			}
 
@@ -69,7 +71,7 @@ public class MinigameServerManager {
 
 			int gameKey = this.gameKeyGenerator.getAndIncrement();
 			serverData = this.inactives.remove(0);
-			serverData.write(new PacketCreateGame(type.getId(), gameKey, maxPlayers));
+			serverData.write(new PacketCreateGame(type.getClassifierId(), gameKey, maxPlayers));
 			serverData.setGameKey(gameKey);
 			serverData.setGameStatus(GameStatus.WAITING);
 			serverData.setGameType(type);
