@@ -45,13 +45,13 @@ public class QueuingState extends GameState {
 			player.teleportAsync(this.minigame.getLobby()).thenAccept(result -> {
 				if (!result) {
 					player.sendMessage(Component.text(ChatColor.RED + "An error occurred while teleporting you to the minigame lobby. You have been sent back to the main lobby."));
-					this.minigameManager.sendToProxyLobby(player);
+					this.minigameManager.connectToProxyLobby(player);
 					return;
 				}
 
 				player.getInventory().clear();
 				player.setFireTicks(0);
-				if (this.minigame.getNumPlayers() >= this.minigameManager.getMaxPlayers() && this.minigameManager.isInState(QueuingState.class)) {
+				if (this.minigame.getNumPlayers() >= this.minigameManager.getMinPlayers() && this.minigameManager.isInState(QueuingState.class)) {
 					this.minigameManager.nextState();
 				}
 			});

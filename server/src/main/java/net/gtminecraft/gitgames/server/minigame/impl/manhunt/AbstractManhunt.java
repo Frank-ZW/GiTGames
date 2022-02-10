@@ -1,8 +1,10 @@
 package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
+import com.google.common.collect.Iterables;
 import net.gtminecraft.gitgames.server.minigame.functional.PlayerTrackerHandler;
 import net.gtminecraft.gitgames.server.minigame.type.AbstractSurvivalMinigame;
 import net.gtminecraft.gitgames.server.minigame.functional.IPlayerTracker;
+import net.gtminecraft.gitgames.server.runnable.CountdownRunnable;
 import net.gtminecraft.gitgames.server.util.ItemUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -11,7 +13,6 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,9 +89,9 @@ public abstract class AbstractManhunt extends AbstractSurvivalMinigame implement
 	}
 
 	@Override
-	public void startCountdown(@NotNull BukkitRunnable runnable) {
-		this.speedrunner = this.players.get(this.random.nextInt(this.players.size()));
+	public void startCountdown(@NotNull CountdownRunnable runnable) {
 		this.hunters.addAll(this.players);
+		this.speedrunner = Iterables.get(this.hunters, this.random.nextInt(this.players.size()));
 		this.hunters.remove(this.speedrunner);
 		super.startCountdown(runnable);
 	}

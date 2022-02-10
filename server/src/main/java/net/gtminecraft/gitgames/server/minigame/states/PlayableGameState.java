@@ -20,7 +20,7 @@ public abstract class PlayableGameState extends GameState {
 		this.minigameManager.getSpectatorQueue().computeIfPresent(player.getUniqueId(), (k, v) -> {
 			Player target = Bukkit.getPlayer(v);
 			if (target == null) {
-				this.minigameManager.sendToProxyLobby(player);
+				this.minigameManager.connectToProxyLobby(player);
 				return null;
 			}
 
@@ -31,7 +31,7 @@ public abstract class PlayableGameState extends GameState {
 					player.sendMessage(ChatColor.GREEN + "You are now spectating " + target.getName() + ".");
 				} else {
 					player.sendMessage(ChatColor.RED + "Failed to teleport you to " + target.getName() + ". You have been connected back to the lobby.");
-					this.minigameManager.sendToProxyLobby(player);
+					this.minigameManager.connectToProxyLobby(player);
 				}
 			});
 

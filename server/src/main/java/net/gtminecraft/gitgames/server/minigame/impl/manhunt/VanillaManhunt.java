@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EnderDragonChangePhaseEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
@@ -50,7 +51,9 @@ public class VanillaManhunt extends AbstractManhunt {
 				this.addAwardedAdvancement(e.getPlayer(), e.getAdvancement());
 			}
 		} else if (event instanceof PlayerDeathEvent e) {
-			if (this.isSpeedrunner(e.getEntity().getUniqueId())) {
+			if (!(this.winner instanceof EmptyWinner)) {
+				e.setCancelled(true);
+			} else if (this.isSpeedrunner(e.getEntity().getUniqueId())) {
 				this.endMinigame(new HunterWinner(), false);
 			} else {
 				e.getDrops().removeIf(this::isPlayerTracker);
@@ -62,6 +65,10 @@ public class VanillaManhunt extends AbstractManhunt {
 		} else if (event instanceof EnderDragonChangePhaseEvent e) {
 			if (e.getNewPhase() == EnderDragon.Phase.DYING) {
 				this.endMinigame(new SpeedrunnerWinner(Bukkit.getOfflinePlayer(this.speedrunner).getName()), false);
+			}
+		} else if (event instanceof EntityDamageEvent e) {
+			if (this.isPlayer(e.getEntity().getUniqueId()) && !(this.winner instanceof EmptyWinner)) {
+				e.setCancelled(true);
 			}
 		}
 	}
@@ -95,6 +102,11 @@ public class VanillaManhunt extends AbstractManhunt {
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
 		this.handleEvent(e, e.getEntity().getUniqueId(), true);
 		this.handleEvent(e, e.getDamager().getUniqueId(), true);
+	}
+
+	@EventHandler
+	public void onEntityDamage(EntityDamageEvent e) {
+		this.handleEvent(e, e.getEntity().getUniqueId(), true);
 	}
 
 	@EventHandler

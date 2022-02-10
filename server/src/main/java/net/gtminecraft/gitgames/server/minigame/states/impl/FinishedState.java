@@ -17,6 +17,7 @@ public class FinishedState extends PlayableGameState {
 	@Override
 	public void onEnable() {
 		super.onEnable();	// Send the game update packet
+		this.minigame.cancelDisconnections();
 		this.minigame.endTeleport();
 		this.minigame.deleteWorlds(true);
 		this.minigameManager.nextState();
@@ -24,9 +25,7 @@ public class FinishedState extends PlayableGameState {
 
 	@Override
 	public void onDisable() {
-		this.minigameManager.setMaxPlayers(0);
-		this.minigameManager.setMinigame(null);
-		this.minigameManager.clearSpectatorQueue();
+		this.minigameManager.unload();
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package net.gtminecraft.gitgames.server;
 import lombok.Getter;
 import net.gtminecraft.gitgames.server.config.ConfigSettings;
 import net.gtminecraft.gitgames.server.connection.manager.ConnectionManager;
+import net.gtminecraft.gitgames.server.map.manager.MapLoaderManager;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
@@ -12,12 +13,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Iterator;
-import java.util.logging.Level;
 
 public final class CorePlugin extends JavaPlugin {
 
@@ -36,7 +32,7 @@ public final class CorePlugin extends JavaPlugin {
 	@Getter
 	private MinigameManager minigameManager;
 	@Getter
-	private File mapFiles;
+	private MapLoaderManager mapLoaderManager;
 	@Getter
 	private static CorePlugin instance;
 
@@ -50,8 +46,9 @@ public final class CorePlugin extends JavaPlugin {
 			return;
 		}
 
-		if (!this.loadMaps()) {
-			Bukkit.getLogger().warning("Insert error message in CorePlugin line 51");
+		this.mapLoaderManager = new MapLoaderManager(this);
+		if (!this.mapLoaderManager.isSuccess()) {
+			Bukkit.getLogger().warning("Failed to load in map data from the configuration file. The plugin will automatically disable.");
 			return;
 		}
 
@@ -74,8 +71,14 @@ public final class CorePlugin extends JavaPlugin {
 		Bukkit.getScheduler().cancelTasks(this);
 		HandlerList.unregisterAll(this);
 		this.settings.saveSettings();
-		this.minigameManager.disable();
-		this.connectionManager.disable();
+		if (this.minigameManager != null) {
+			this.minigameManager.disable();
+		}
+
+		if (this.connectionManager != null) {
+			this.connectionManager.disable();
+		}
+
 		instance = null;
 	}
 
@@ -95,25 +98,5 @@ public final class CorePlugin extends JavaPlugin {
 				break;
 			}
 		}
-	}
-
-	private boolean loadMaps() {
-		this.mapFiles = new File(this.getDataFolder(), "mapdata");
-		if (!this.mapFiles.exists()) {
-			if (!this.mapFiles.mkdir()) {
-				return false;
-			}
-
-			try (InputStream input = this.getResource("mapdata")) {
-				if (input != null) {
-					Files.copy(input, this.mapFiles.toPath());
-				}
-			} catch (IOException e) {
-				Bukkit.getLogger().log(Level.SEVERE, "", e);
-				return false;
-			}
-		}
-
-		return true;
 	}
 }

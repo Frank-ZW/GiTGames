@@ -94,14 +94,14 @@ public class DownstreamBridge extends PacketHandler {
 
 	@Override
 	public void handle(PacketPlayerQueue packet) {
-		this.plugin.getMinigameManager().handleQueue(packet.getPlayer(), packet.getTarget());
+		this.plugin.getMinigameManager().queuePlayer(packet.getPlayer(), packet.getTarget());
 	}
 
 	@Override
 	public void handle(PacketServerAction packet) {
 		switch (packet.getAction()) {
 			case FORCE_END -> Bukkit.getScheduler().callSyncMethod(this.plugin, () -> {
-				this.plugin.getMinigameManager().handleForceEnd();
+				this.plugin.getMinigameManager().forceEnd();
 				return null;
 			});
 

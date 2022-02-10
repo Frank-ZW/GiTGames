@@ -7,6 +7,7 @@ import lombok.Setter;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerDisconnect;
 import net.gtminecraft.gitgames.server.CorePlugin;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
+import net.gtminecraft.gitgames.server.runnable.CountdownRunnable;
 import net.gtminecraft.gitgames.server.util.ItemUtil;
 import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import net.kyori.adventure.text.Component;
@@ -35,7 +36,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,11 +49,12 @@ public abstract class AbstractMinigame implements Listener {
 	protected final CorePlugin plugin;
 	@Getter
 	protected final Map<UUID, BukkitTask> disconnections = new HashMap<>();
-	protected final List<UUID> players = new ArrayList<>();
-	protected final List<UUID> spectators = new ArrayList<>();
+	protected final Set<UUID> players = new HashSet<>();
+	protected final Set<UUID> spectators = new HashSet<>();
 	protected final Random random = new Random();
 	protected WinnerInterface winner = new EmptyWinner();
-	protected BukkitTask countdown;
+	@Getter
+	protected CountdownRunnable countdown;
 	protected BukkitTask finished;
 	@Getter
 	@Setter
@@ -110,26 +111,13 @@ public abstract class AbstractMinigame implements Listener {
 	}
 
 	/**
-	 * Returns a collection of only the active players in the game. This method can safely be used during the
-	 * queuing, preparation, and countdown stage. To get all players during an active game, use {@link #getAllPlayers()}
+	 * Returns a collection of all players associated with the game. This method can safely be used during the
+	 * queuing, preparation, and countdown stage.
 	 *
 	 * @return	The collection of player UUIDs backing the game.
 	 */
 	public Collection<UUID> getPlayers() {
 		return this.players;
-	}
-
-	/**
-	 * Returns all players associated with the game, including spectators and active participants. This method can be
-	 * called whenever. To get only the players playing in the game, use {@link #getPlayers()}
-	 *
-	 * @return	The collection of all in-game players and spectator UUIDs
-	 */
-	public Collection<UUID> getAllPlayers() {
-		Collection<UUID> all = new ArrayList<>(this.players.size() + this.spectators.size());
-		all.addAll(this.players);
-		all.addAll(this.spectators);
-		return all;
 	}
 
 	/**
@@ -142,8 +130,7 @@ public abstract class AbstractMinigame implements Listener {
 	}
 
 	/**
-	 * Returns true if the player is in the game, false otherwise. Spectators are not included in the backing player
-	 * list. To check if a player is a spectator, use {@link #isSpectator(UUID)}.
+	 * Returns true if the player is in the game, false otherwise.
 	 *
 	 * @param uniqueId	The UUID of the player to be checked.
 	 * @return			True if the player is in the game, false otherwise.
@@ -172,10 +159,11 @@ public abstract class AbstractMinigame implements Listener {
 	 *
 	 * If no countdown is desired, set the runnable to immediately queue the game manager's next game state.
 	 *
-	 * @param runnable	The runnable representing the countdown
+	 * @param countdown	The runnable representing the countdown
 	 */
-	public void startCountdown(@NotNull BukkitRunnable runnable) {
-		this.countdown = runnable.runTaskTimer(this.plugin, 0L, 20L);
+	public void startCountdown(@NotNull CountdownRunnable countdown) {
+		this.countdown = countdown;
+		this.countdown.runTaskTimer(this.plugin, 0L, 20L);
 	}
 
 	/**
@@ -224,8 +212,6 @@ public abstract class AbstractMinigame implements Listener {
 		Bukkit.getScheduler().cancelTasks(this.plugin);
 	}
 
-	// Use this method only during or after countdown state, else get the backing player list and remove the UUID manually
-
 	/**
 	 * Removes the player from the minigame and checks if the game should end. This method should only be called during
 	 * the active state of the game
@@ -257,6 +243,7 @@ public abstract class AbstractMinigame implements Listener {
 			other.hidePlayer(this.plugin, player);
 		}
 
+		this.players.add(player.getUniqueId());
 		this.spectators.add(player.getUniqueId());
 	}
 
@@ -438,9 +425,23 @@ public abstract class AbstractMinigame implements Listener {
 		}
 	}
 
+	public void endTeleport() {
+		for (UUID uniqueId : this.players) {
+			Player player = Bukkit.getPlayer(uniqueId);
+			if (player == null || !player.isOnline()) {
+				continue;
+			}
+
+			if (player.isDead()) {
+				player.spigot().respawn();
+			}
+
+			this.onPlayerEndTeleport(player);
+		}
+	}
+
 	protected abstract void handlePlayerEvent(@NotNull Event event);
 	public abstract void startTeleport();
-	public abstract void endTeleport();
 	public abstract boolean createWorlds();
 	public abstract boolean worldsLoaded();
 	public abstract void deleteWorlds();
@@ -464,6 +465,14 @@ public abstract class AbstractMinigame implements Listener {
 				this.plugin.getConnectionManager().write(new PacketPlayerDisconnect(player.getUniqueId()));
 				this.removePlayer(player);
 			}, TimeUnit.MINUTES.toSeconds(3) * 20L));
+		}
+	}
+
+	public void cancelDisconnections() {
+		Iterator<BukkitTask> iterator = this.disconnections.values().iterator();
+		while (iterator.hasNext()) {
+			iterator.next().cancel();
+			iterator.remove();
 		}
 	}
 

@@ -11,6 +11,6 @@ public abstract class AbstractMapMinigame extends AbstractMinigame {
 
 	public AbstractMapMinigame(String name, String worldName, Location lobby, int gameKey) {
 		super(name, lobby, gameKey);
-		this.map = new LoadableGameMap(this.plugin.getMapFiles(), worldName, true);
+		this.map = new LoadableGameMap(this.plugin.getMapLoaderManager().getMapFolder(), worldName, true);
 	}
 }

@@ -130,22 +130,6 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 	}
 
 	@Override
-	public void endTeleport() {
-		for (UUID uniqueId : this.players) {
-			Player player = Bukkit.getPlayer(uniqueId);
-			if (player == null || !player.isOnline()) {
-				continue;
-			}
-
-			if (player.isDead()) {
-				player.spigot().respawn();
-			}
-
-			this.onPlayerEndTeleport(player);
-		}
-	}
-
-	@Override
 	public void cancelCountdown() {
 		super.cancelCountdown();
 		this.advancements.clear();
@@ -188,6 +172,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 								this.grantAdvancement(player, this.plugin.getNetherAdvancement());
 							}
 						}
+
 						case NETHER -> e.setTo(new Location(this.getOverworld(), e.getFrom().getX() * 8.0D, e.getFrom().getY(), e.getFrom().getZ() * 8.0D));
 					}
 
@@ -200,6 +185,7 @@ public abstract class AbstractSurvivalMinigame extends AbstractMinigame {
 								this.grantAdvancement(player, this.plugin.getEndAdvancement());
 							}
 						}
+
 						case THE_END -> e.setTo(player.getBedSpawnLocation() == null ? this.getOverworld().getSpawnLocation() : player.getBedSpawnLocation());
 					}
 

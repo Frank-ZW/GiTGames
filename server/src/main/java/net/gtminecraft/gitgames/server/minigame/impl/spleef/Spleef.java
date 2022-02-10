@@ -1,5 +1,6 @@
 package net.gtminecraft.gitgames.server.minigame.impl.spleef;
 
+import com.google.common.collect.Iterables;
 import net.gtminecraft.gitgames.server.minigame.type.AbstractMapMinigame;
 import net.gtminecraft.gitgames.server.util.StringUtil;
 import net.kyori.adventure.text.Component;
@@ -23,18 +24,20 @@ import java.util.UUID;
 public class Spleef extends AbstractMapMinigame {
 
 	public Spleef(Location lobby, int gameKey) {
-		super("Spleef", "spleef_source_1", lobby, gameKey);
+		super("Spleef", "spleef_1", lobby, gameKey);
 	}
 
 	@Override
 	protected void handlePlayerEvent(@NotNull Event event) {
-		if (event instanceof EntityDamageEvent e && e.getCause() == EntityDamageEvent.DamageCause.VOID) {
+		if (event instanceof EntityDamageEvent e) {
 			e.setCancelled(true);
-			Player player = (Player) e.getEntity();
-			this.players.remove(player.getUniqueId());
-			this.spectators.add(player.getUniqueId());
-			if (this.players.size() == 1) {
-				this.endMinigame(new SingleWinner(Bukkit.getOfflinePlayer(this.players.get(0)).getName()), false);
+			if (e.getCause() == EntityDamageEvent.DamageCause.VOID) {
+				Player player = (Player) e.getEntity();
+				this.players.remove(player.getUniqueId());
+				this.spectators.add(player.getUniqueId());
+				if (this.players.size() == 1) {
+					this.endMinigame(new SingleWinner(Bukkit.getOfflinePlayer(Iterables.get(this.players, 0)).getName()), false);
+				}
 			}
 		} else if (event instanceof FoodLevelChangeEvent e) {
 			e.setCancelled(true);
@@ -48,22 +51,6 @@ public class Spleef extends AbstractMapMinigame {
 			if (player != null) {
 				this.onPlayerStartTeleport(player, this.map.getWorld().getSpawnLocation());
 			}
-		}
-	}
-
-	@Override
-	public void endTeleport() {
-		for (UUID uniqueId : this.getAllPlayers()) {
-			Player player = Bukkit.getPlayer(uniqueId);
-			if (player == null || !player.isOnline()) {
-				continue;
-			}
-
-			if (player.isDead()) {
-				player.spigot().respawn();
-			}
-
-			this.onPlayerEndTeleport(player);
 		}
 	}
 

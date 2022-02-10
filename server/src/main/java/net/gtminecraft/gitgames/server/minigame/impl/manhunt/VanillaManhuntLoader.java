@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 public class VanillaManhuntLoader implements GameClassLoaderInterface {
 
 	@Override
-	public double getId() {
-		return GameClassifiers.VANILLA_MANHUNT_CLASSIFIER.getId();
+	public int getId() {
+		return GameClassifiers.MANHUNT.getClassifierId();
 	}
 
 	@Override

@@ -14,6 +14,6 @@ public abstract class GameState extends AbstractGameState {
 
 	@Override
 	public void writeUpdate() {
-		this.plugin.getConnectionManager().write(new PacketGameUpdate(this.priority, this.minigame.getAllPlayers()));
+		this.plugin.getConnectionManager().write(new PacketGameUpdate(this.priority, this.minigame.getPlayers()));
 	}
 }

@@ -6,12 +6,9 @@ import net.gtminecraft.gitgames.server.minigame.impl.spleef.SpleefLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class GameLoaderManager {
 
-	private final Map<Double, GameClassLoaderInterface> loaderInterfaces = new HashMap<>();
+	private final GameClassLoaderInterface[] loaderInterfaces = new GameClassLoaderInterface[Byte.MAX_VALUE];
 
 	public GameLoaderManager() {
 		this.register(new VanillaManhuntLoader());
@@ -19,11 +16,11 @@ public class GameLoaderManager {
 	}
 
 	@Nullable
-	public GameClassLoaderInterface getGameLoader(double gameId) {
-		return this.loaderInterfaces.get(gameId);
+	public GameClassLoaderInterface getGameLoader(int gameId) {
+		return this.loaderInterfaces[gameId];
 	}
 
 	public void register(@NotNull GameClassLoaderInterface classLoader) {
-		this.loaderInterfaces.put(classLoader.getId(), classLoader);
+		this.loaderInterfaces[classLoader.getId()] = classLoader;
 	}
 }

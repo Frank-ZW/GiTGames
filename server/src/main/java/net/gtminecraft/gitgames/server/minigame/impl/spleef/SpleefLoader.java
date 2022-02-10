@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 public class SpleefLoader implements GameClassLoaderInterface {
 
 	@Override
-	public double getId() {
-		return GameClassifiers.SPLEEF_CLASSIFIER.getId();
+	public int getId() {
+		return GameClassifiers.SPLEEF.getClassifierId();
 	}
 
 	@Override

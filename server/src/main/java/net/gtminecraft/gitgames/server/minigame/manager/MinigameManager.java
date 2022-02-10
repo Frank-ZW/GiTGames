@@ -3,9 +3,7 @@ package net.gtminecraft.gitgames.server.minigame.manager;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.Getter;
 import lombok.Setter;
-import net.gtminecraft.gitgames.compatability.mechanics.GameStateUtils;
-import net.gtminecraft.gitgames.compatability.mechanics.PlayerStatus;
-import net.gtminecraft.gitgames.compatability.mechanics.ServerType;
+import net.gtminecraft.gitgames.compatability.mechanics.*;
 import net.gtminecraft.gitgames.compatability.packet.PacketGameUpdate;
 import net.gtminecraft.gitgames.compatability.packet.PacketPlayerConnect;
 import net.gtminecraft.gitgames.server.CorePlugin;
@@ -17,7 +15,6 @@ import net.gtminecraft.gitgames.server.minigame.states.impl.CountdownState;
 import net.gtminecraft.gitgames.server.minigame.states.impl.FinishedState;
 import net.gtminecraft.gitgames.server.minigame.states.impl.InactiveState;
 import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
-import net.gtminecraft.gitgames.server.util.PlayerUtil;
 import net.gtminecraft.gitgames.server.renderer.GameRenderer;
 import net.gtminecraft.gitgames.server.renderer.LobbyRenderer;
 import net.kyori.adventure.audience.Audience;
@@ -29,7 +26,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -44,13 +40,16 @@ public class MinigameManager implements Listener {
 	@Getter
 	private final Map<UUID, UUID> spectatorQueue = new HashMap<>();
 	private final GameLoaderManager loaderManager = new GameLoaderManager();
+	@Getter
+	private AbstractGameClassifier classifier;
 	private AbstractGameState state;
 	@Setter
 	@Getter
 	private AbstractMinigame minigame;
-	@Setter
 	@Getter
 	private int maxPlayers;
+	@Getter
+	private int minPlayers;
 
 	public MinigameManager(CorePlugin plugin) {
 		this.plugin = plugin;
@@ -102,15 +101,18 @@ public class MinigameManager implements Listener {
 		this.state.onEnable();
 	}
 
-	public void clearSpectatorQueue() {
+	public void unload() {
+		this.minigame = null;
+		this.maxPlayers = 0;
+		this.minPlayers = 0;
 		this.spectatorQueue.clear();
 	}
 
-	public void sendToProxyLobby(Player player) {
+	public void connectToProxyLobby(Player player) {
 		this.plugin.getConnectionManager().write(new PacketPlayerConnect(PlayerStatus.INACTIVE, ServerType.LOBBY, player.getUniqueId()));
 	}
 
-	public void handleQueue(UUID player, @Nullable UUID target) {
+	public void queuePlayer(UUID player, @Nullable UUID target) {
 		if (target != null) {
 			this.spectatorQueue.put(player, target);
 			return;
@@ -119,8 +121,12 @@ public class MinigameManager implements Listener {
 		this.minigame.addPlayer(player);
 	}
 
-	public void handleForceEnd() {
-		if (this.minigame == null) {
+	/**
+	 * Forcefully nd an active game if one exists. This method guarantees that all players will be connected back to the
+	 * lobby and the server requeued.
+	 */
+	public void forceEnd() {
+		if (this.minigame == null || this.isInState(InactiveState.class) || this.isInState(FinishedState.class)) {
 			return;
 		}
 
@@ -129,8 +135,6 @@ public class MinigameManager implements Listener {
 				this.minigame.runFinishedTaskNow();
 			} else {
 				this.minigame.endMinigame(new AbstractMinigame.GeneralErrorInterruption(ChatColor.GREEN + "The " + this.minigame.getName() + " you were in was forcefully ended."), true);
-				this.minigame.endTeleport();
-				this.minigame.deleteWorlds(true);
 			}
 		} else {
 			if (this.isInState(CountdownState.class)) {
@@ -146,52 +150,28 @@ public class MinigameManager implements Listener {
 	}
 
 	/**
-	 * @param gameId		The id of the associated game to create, {@link net.gtminecraft.gitgames.compatability.mechanics.GameClassifiers}
+	 * @param gameId		The id of the associated game to create
 	 * @param gameKey		The unique game key identifier for the current minigame session
 	 * @param maxPlayers	The maximum number of players the minigame can accommodate
 	 */
-	public void createMinigame(double gameId, int gameKey, int maxPlayers) {
+	public void createMinigame(int gameId, int gameKey, int maxPlayers) {
 		if (this.minigame != null && !this.isInState(InactiveState.class)) {
 			Bukkit.getLogger().warning("Cancelled an attempt to override an active minigame. Contact the developer if this occurs.");
 			return;
 		}
 
+		this.classifier = GameClassifiers.CLASSIFIERS[gameId];
 		GameClassLoaderInterface loaderInterface = this.loaderManager.getGameLoader(gameId);
-		if (loaderInterface == null) {
-			this.maxPlayers = 0;
+		if (loaderInterface == null || this.classifier == null) {
+			this.unload();
 			return;
 		}
 
 		this.minigame = loaderInterface.loadGame(this.plugin.getSettings().getLobby(), gameKey);
-		Bukkit.getLogger().info(ChatColor.GREEN + "Creating new " + this.minigame.getName() + " with game key of " + gameKey);		this.maxPlayers = maxPlayers;
+		this.minPlayers = this.classifier.playerThreshold(maxPlayers);
+		this.maxPlayers = maxPlayers;
+		Bukkit.getLogger().info(ChatColor.GREEN + "Creating new " + this.minigame.getName() + " with game key of " + gameKey);
 		this.nextState();
-	}
-
-	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent e) {
-		Player player = e.getPlayer();
-		if (this.isInState(ActiveState.class) || this.isInState(FinishedState.class)) {
-			this.spectatorQueue.computeIfPresent(player.getUniqueId(), (k, v) -> {
-				Player target = Bukkit.getPlayer(v);
-				if (target == null) {
-					this.sendToProxyLobby(player);
-					return null;
-				}
-
-				player.teleportAsync(target.getLocation()).thenAccept(result -> {
-					if (result) {
-						PlayerUtil.setSpectator(player);
-						this.minigame.hideSpectator(player);
-						player.sendMessage(ChatColor.GREEN + "You are now spectating " + target.getName() + ".");
-					} else {
-						player.sendMessage(ChatColor.RED + "Failed to teleport you to " + target.getName() + ". You have been connected back to the lobby.");
-						this.sendToProxyLobby(player);
-					}
-				});
-
-				return null;
-			});
-		}
 	}
 
 	@EventHandler
