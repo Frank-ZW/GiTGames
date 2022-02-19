@@ -1,6 +1,6 @@
 package net.gtminecraft.gitgames.server.minigame.states;
 
-import net.gtminecraft.gitgames.server.util.PlayerUtil;
+import net.gtminecraft.gitgames.server.util.MinecraftUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -26,8 +26,8 @@ public abstract class PlayableGameState extends GameState {
 
 			player.teleportAsync(target.getLocation()).thenAccept(result -> {
 				if (result) {
-					this.minigame.hideSpectator(player);
-					PlayerUtil.setSpectator(player);
+					this.game.hideSpectator(player);
+					MinecraftUtil.setSpectator(player);
 					player.sendMessage(ChatColor.GREEN + "You are now spectating " + target.getName() + ".");
 				} else {
 					player.sendMessage(ChatColor.RED + "Failed to teleport you to " + target.getName() + ". You have been connected back to the lobby.");
@@ -38,10 +38,10 @@ public abstract class PlayableGameState extends GameState {
 			return null;
 		});
 
-		this.minigame.getDisconnections().computeIfPresent(player.getUniqueId(), (k, v) -> {
+		this.game.getDisconnections().computeIfPresent(player.getUniqueId(), (k, v) -> {
 			v.cancel();
-			if (this.minigame.isPlayer(k) && !this.minigame.isSpectator(k)) {
-				Bukkit.broadcast(this.minigame.gameDisplayName(player).append(Component.text(ChatColor.GRAY + " reconnected.")));
+			if (this.game.isPlayer(k) && !this.game.isSpectator(k)) {
+				Bukkit.broadcast(this.game.gameDisplayName(player).append(Component.text(ChatColor.GRAY + " reconnected.")));
 			}
 
 			return null;

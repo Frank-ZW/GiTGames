@@ -1,0 +1,12 @@
+Removed world/data/capabilities.dat: not used
+Removed world/DIM-1/data/capabilities.dat: not used
+Removed world/DIM-1/data/raids.dat: not used
+Removed world/DIM1/data/capabilities.dat: not used
+Removed world/playerdata/a9100156-2997-4944-9c57-ecdc8adaf2d2.dat_old: not used
+Removed world/playerdata/ee6636e2-b7ad-47dd-8c6b-f7def44302b7.dat_old: not used
+Removed world/poi/r.-1.-1.mca: 0 size
+Removed world/poi/r.-1.0.mca: 0 size
+Removed world/poi/r.0.-1.mca: 0 size
+Removed world/poi/r.0.0.mca: 0 size
+Removed world/serverconfig/forge-server.toml: not used
+Validated 24 files, 13 accepted, 11 rejected.

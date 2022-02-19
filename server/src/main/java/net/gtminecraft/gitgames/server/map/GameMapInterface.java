@@ -1,5 +1,6 @@
 package net.gtminecraft.gitgames.server.map;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,4 +11,5 @@ public interface GameMapInterface {
 	void unload();
 	boolean restoreFromSource();
 	@NotNull World getWorld();
+	@NotNull Location getLobby();
 }

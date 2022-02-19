@@ -14,9 +14,12 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Iterator;
+import java.util.Random;
 
 public final class CorePlugin extends JavaPlugin {
 
+	@Getter
+	private final Random random = new Random();
 	@Getter
 	private NamespacedKey key;
 	@Getter

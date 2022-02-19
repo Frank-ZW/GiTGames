@@ -1,7 +1,9 @@
 package net.gtminecraft.gitgames.server.minigame.impl.spleef;
 
 import com.google.common.collect.Iterables;
-import net.gtminecraft.gitgames.server.minigame.type.AbstractMapMinigame;
+import net.gtminecraft.gitgames.server.map.MapDataContainer;
+import net.gtminecraft.gitgames.server.minigame.type.AbstractMapGame;
+import net.gtminecraft.gitgames.server.util.MinecraftUtil;
 import net.gtminecraft.gitgames.server.util.StringUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -19,22 +21,31 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 
-public class Spleef extends AbstractMapMinigame {
+public class Spleef extends AbstractMapGame {
 
-	public Spleef(Location lobby, int gameKey) {
-		super("Spleef", "spleef_1", lobby, gameKey);
+	private final Collection<EntityDamageEvent.DamageCause> damageCauses;
+
+	public Spleef(MapDataContainer container, int gameKey, EntityDamageEvent.DamageCause ... causes) {
+		super(container, "Spleef", gameKey);
+		this.damageCauses = Arrays.asList(causes);
 	}
 
 	@Override
 	protected void handlePlayerEvent(@NotNull Event event) {
 		if (event instanceof EntityDamageEvent e) {
 			e.setCancelled(true);
-			if (e.getCause() == EntityDamageEvent.DamageCause.VOID) {
+			if (this.damageCauses.contains(e.getCause())) {
 				Player player = (Player) e.getEntity();
-				this.players.remove(player.getUniqueId());
 				this.spectators.add(player.getUniqueId());
+				player.teleportAsync(this.getLobby()).thenAccept(result -> {
+					if (result) {
+						player.sendMessage(Component.text(ChatColor.GREEN + "OOF You died!!"));
+					}
+				});
 				if (this.players.size() == 1) {
 					this.endMinigame(new SingleWinner(Bukkit.getOfflinePlayer(Iterables.get(this.players, 0)).getName()), false);
 				}
@@ -49,6 +60,8 @@ public class Spleef extends AbstractMapMinigame {
 		for (UUID uniqueId : this.players) {
 			Player player = Bukkit.getPlayer(uniqueId);
 			if (player != null) {
+				MinecraftUtil.clearAdvancements(player);
+				MinecraftUtil.resetAttributes(player);
 				this.onPlayerStartTeleport(player, this.map.getWorld().getSpawnLocation());
 			}
 		}
@@ -62,11 +75,6 @@ public class Spleef extends AbstractMapMinigame {
 	@Override
 	public boolean worldsLoaded() {
 		return this.map.isLoaded();
-	}
-
-	@Override
-	public void deleteWorlds() {
-		this.map.unload();
 	}
 
 	@Override
@@ -90,7 +98,7 @@ public class Spleef extends AbstractMapMinigame {
 
 	@Override
 	public void onPlayerEndTeleport(@NotNull Player player) {
-		player.teleport(this.lobby);
+		player.teleport(this.getLobby());
 	}
 
 	@NotNull

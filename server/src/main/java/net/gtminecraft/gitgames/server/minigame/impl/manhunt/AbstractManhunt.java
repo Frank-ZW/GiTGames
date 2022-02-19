@@ -1,8 +1,9 @@
 package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
 import com.google.common.collect.Iterables;
+import net.gtminecraft.gitgames.server.map.MapDataContainer;
 import net.gtminecraft.gitgames.server.minigame.functional.PlayerTrackerHandler;
-import net.gtminecraft.gitgames.server.minigame.type.AbstractSurvivalMinigame;
+import net.gtminecraft.gitgames.server.minigame.type.AbstractSurvivalGame;
 import net.gtminecraft.gitgames.server.minigame.functional.IPlayerTracker;
 import net.gtminecraft.gitgames.server.runnable.CountdownRunnable;
 import net.gtminecraft.gitgames.server.util.ItemUtil;
@@ -20,14 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class AbstractManhunt extends AbstractSurvivalMinigame implements IPlayerTracker {
+public abstract class AbstractManhunt extends AbstractSurvivalGame implements IPlayerTracker {
 
 	protected UUID speedrunner;
 	protected final List<UUID> hunters = new ArrayList<>();
 	private final IPlayerTracker trackerHandler = new PlayerTrackerHandler(ItemUtil.DEFAULT_PLAYER_TRACKER, "player_tracker");
 
-	public AbstractManhunt(Location lobby, int gameKey) {
-		super("Manhunt", lobby, gameKey);
+	public AbstractManhunt(MapDataContainer container, int gameKey) {
+		super(container, "Manhunt", gameKey);
 	}
 
 	public boolean isSpeedrunner(UUID uniqueId) {

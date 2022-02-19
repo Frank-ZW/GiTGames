@@ -19,7 +19,7 @@ public class CountdownState extends GameState {
 
 	@Override
 	public void onEnable() {
-		this.minigame.startCountdown(new CountdownRunnable(this.minigameManager, this.minigame.getNumPlayers() >= this.minigameManager.getMinPlayers() ? 15 : 20));
+		this.game.startCountdown(new CountdownRunnable(this.minigameManager, this.game.getNumPlayers() >= this.minigameManager.getMinPlayers() ? 10 : 20));
 	}
 
 	@Override
@@ -33,22 +33,22 @@ public class CountdownState extends GameState {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		Player player = e.getPlayer();
-		if (!this.minigame.getPlayers().remove(player.getUniqueId())) {
+		if (!this.game.getPlayers().remove(player.getUniqueId())) {
 			return;
 		}
 
 		this.plugin.getConnectionManager().write(new PacketPlayerDataUpdate(PlayerStatus.INACTIVE, player.getUniqueId()));
-		if (this.minigame.getNumPlayers() < this.minigameManager.getMinPlayers()) {
-			this.minigame.cancelCountdown();
-			this.minigameManager.setState(this.minigame.getNumPlayers() == 0 ? new FinishedState() : new QueuingState());
+		if (this.game.getNumPlayers() < this.minigameManager.getMinPlayers()) {
+			this.game.cancelCountdown();
+			this.minigameManager.setState(this.game.getNumPlayers() == 0 ? new FinishedState() : new QueuingState());
 		}
 	}
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
-		if (this.minigame.isPlayer(player.getUniqueId()) && this.minigame.getNumPlayers() >= (this.minigameManager.getMinPlayers() + this.minigameManager.getMaxPlayers()) / 2) {
-			this.minigame.getCountdown().setCountdown(10);
+		if (this.game.isPlayer(player.getUniqueId()) && this.game.getNumPlayers() >= (this.minigameManager.getMinPlayers() + this.minigameManager.getMaxPlayers()) / 2) {
+			this.game.getCountdown().setCountdown(10);
 		}
 	}
 }

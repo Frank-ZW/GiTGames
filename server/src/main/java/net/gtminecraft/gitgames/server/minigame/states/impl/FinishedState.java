@@ -17,9 +17,9 @@ public class FinishedState extends PlayableGameState {
 	@Override
 	public void onEnable() {
 		super.onEnable();	// Send the game update packet
-		this.minigame.cancelDisconnections();
-		this.minigame.endTeleport();
-		this.minigame.deleteWorlds(true);
+		this.game.cancelDisconnections();
+		this.game.endTeleport();
+		this.game.deleteWorlds(true);
 		this.minigameManager.nextState();
 	}
 
@@ -35,14 +35,14 @@ public class FinishedState extends PlayableGameState {
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerDeath(PlayerDeathEvent e) {
-		if (this.minigame.isPlayer(e.getPlayer().getUniqueId())) {
+		if (this.game.isPlayer(e.getPlayer().getUniqueId())) {
 			e.setCancelled(true);
 		}
 	}
 
 	@EventHandler
 	public void onEntityDamage(EntityDamageEvent e) {
-		if (this.minigame.isPlayer(e.getEntity().getUniqueId())) {
+		if (this.game.isPlayer(e.getEntity().getUniqueId())) {
 			e.setCancelled(true);
 		}
 	}

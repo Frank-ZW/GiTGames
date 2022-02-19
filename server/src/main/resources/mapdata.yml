@@ -1,6 +1,20 @@
 maps:
+  lobby:
+    name: survival
+    x: 0
+    y: 0
+    z: 0
+    yaw: 0.0
+    pitch: 0.0
   spleef:
     spleef_1:
+      lobby:
+        x: 0
+        y: 0
+        z: 0
+        yaw: 0.0
+        pitch: 0.0
+    spleef_2:
       lobby:
         x: 0
         y: 0

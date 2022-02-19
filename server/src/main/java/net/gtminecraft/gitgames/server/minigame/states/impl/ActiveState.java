@@ -17,13 +17,13 @@ public class ActiveState extends PlayableGameState {
 	@Override
 	public void onEnable() {
 		super.onEnable();	// Send the update packet
-		Bukkit.getPluginManager().registerEvents(this.minigame, this.plugin);
-		this.minigame.startTeleport();
+		Bukkit.getPluginManager().registerEvents(this.game, this.plugin);
+		this.game.startTeleport();
 	}
 
 	@Override
 	public void onDisable() {
-		HandlerList.unregisterAll(this.minigame);
+		HandlerList.unregisterAll(this.game);
 	}
 
 	@Override

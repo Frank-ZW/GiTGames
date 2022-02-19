@@ -1,20 +1,19 @@
 package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
 import net.gtminecraft.gitgames.compatability.mechanics.GameClassifiers;
-import net.gtminecraft.gitgames.server.loader.GameClassLoaderInterface;
-import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
-import org.bukkit.Location;
+import net.gtminecraft.gitgames.server.loader.AbstractGameClassLoader;
+import net.gtminecraft.gitgames.server.map.manager.MapLoaderManager;
+import net.gtminecraft.gitgames.server.minigame.AbstractGame;
 import org.jetbrains.annotations.NotNull;
 
-public class VanillaManhuntLoader implements GameClassLoaderInterface {
+public class VanillaManhuntLoader extends AbstractGameClassLoader {
 
-	@Override
-	public int getId() {
-		return GameClassifiers.MANHUNT.getClassifierId();
+	public VanillaManhuntLoader(MapLoaderManager mapLoaderManager) {
+		super(GameClassifiers.MANHUNT, mapLoaderManager);
 	}
 
 	@Override
-	public @NotNull AbstractMinigame loadGame(@NotNull Location spawn, int gameKey) {
-		return new VanillaManhunt(spawn, gameKey);
+	public @NotNull AbstractGame load(int gameKey) {
+		return new VanillaManhunt(this.mapLoaderManager.getLobbyContainer(), gameKey);
 	}
 }

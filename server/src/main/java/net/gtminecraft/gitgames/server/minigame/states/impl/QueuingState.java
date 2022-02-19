@@ -40,9 +40,9 @@ public class QueuingState extends GameState {
 			player.spigot().respawn();
 		}
 
-		if (this.minigame.isPlayer(player.getUniqueId())) {
+		if (this.game.isPlayer(player.getUniqueId())) {
 			player.setGameMode(GameMode.ADVENTURE);
-			player.teleportAsync(this.minigame.getLobby()).thenAccept(result -> {
+			player.teleportAsync(this.game.getLobby()).thenAccept(result -> {
 				if (!result) {
 					player.sendMessage(Component.text(ChatColor.RED + "An error occurred while teleporting you to the minigame lobby. You have been sent back to the main lobby."));
 					this.minigameManager.connectToProxyLobby(player);
@@ -51,7 +51,7 @@ public class QueuingState extends GameState {
 
 				player.getInventory().clear();
 				player.setFireTicks(0);
-				if (this.minigame.getNumPlayers() >= this.minigameManager.getMinPlayers() && this.minigameManager.isInState(QueuingState.class)) {
+				if (this.game.getNumPlayers() >= this.minigameManager.getMinPlayers() && this.minigameManager.isInState(QueuingState.class)) {
 					this.minigameManager.nextState();
 				}
 			});
@@ -61,12 +61,12 @@ public class QueuingState extends GameState {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		Player player = e.getPlayer();
-		if (!this.minigame.getPlayers().remove(player.getUniqueId())) {
+		if (!this.game.getPlayers().remove(player.getUniqueId())) {
 			return;
 		}
 
 		this.plugin.getConnectionManager().write(new PacketPlayerDataUpdate(PlayerStatus.INACTIVE, player.getUniqueId()));
-		if (this.minigame.getNumPlayers() == 0) {
+		if (this.game.getNumPlayers() == 0) {
 			this.minigameManager.setState(new FinishedState());
 		}
 	}

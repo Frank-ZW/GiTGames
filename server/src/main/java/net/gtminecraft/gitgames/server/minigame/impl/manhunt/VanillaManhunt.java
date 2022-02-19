@@ -1,5 +1,6 @@
 package net.gtminecraft.gitgames.server.minigame.impl.manhunt;
 
+import net.gtminecraft.gitgames.server.map.MapDataContainer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 public class VanillaManhunt extends AbstractManhunt {
 
-	public VanillaManhunt(Location lobby, int gameKey) {
-		super(lobby, gameKey);
+	public VanillaManhunt(MapDataContainer container, int gameKey) {
+		super(container, gameKey);
 	}
 
 	@Override

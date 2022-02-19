@@ -1,6 +1,6 @@
 package net.gtminecraft.gitgames.server.runnable;
 
-import net.gtminecraft.gitgames.server.minigame.AbstractMinigame;
+import net.gtminecraft.gitgames.server.minigame.AbstractGame;
 import net.gtminecraft.gitgames.server.minigame.manager.MinigameManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
@@ -12,21 +12,21 @@ import java.util.List;
 
 public class CountdownRunnable extends BukkitRunnable {
 
-	private final AbstractMinigame minigame;
+	private final AbstractGame game;
 	private final MinigameManager minigameManager;
 	private int countdown;
 	private final List<Integer> timestamps = Arrays.asList(20, 15, 10, 5, 4, 3, 2, 1);
 
 	public CountdownRunnable(MinigameManager minigameManager, int countdown) {
 		this.minigameManager = minigameManager;
-		this.minigame = minigameManager.getMinigame();
+		this.game = minigameManager.getGame();
 		this.countdown = countdown;
 	}
 
 	@Override
 	public void run() {
 		if (this.timestamps.contains(this.countdown)) {
-			this.minigame.sendTitleWithEffect(Component.text(this.translateCountdown(this.countdown)), Effect.CLICK2);
+			this.game.sendTitleWithEffect(Component.text(this.translateCountdown(this.countdown)), Effect.CLICK2);
 		}
 
 		if (this.countdown-- <= 0) {
