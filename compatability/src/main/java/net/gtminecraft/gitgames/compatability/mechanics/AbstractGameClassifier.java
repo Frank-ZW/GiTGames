@@ -12,4 +12,5 @@ public abstract class AbstractGameClassifier {
 	protected final int classifierId;
 
 	public abstract int playerThreshold(int maxPlayers);
+	public abstract boolean validate(int maxPlayers);
 }

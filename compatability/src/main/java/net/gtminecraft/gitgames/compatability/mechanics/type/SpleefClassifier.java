@@ -18,4 +18,9 @@ public class SpleefClassifier extends AbstractGameClassifier {
 			return maxPlayers;
 		}
 	}
+
+	@Override
+	public boolean validate(int maxPlayers) {
+		return maxPlayers > 1 && maxPlayers <= 20;
+	}
 }

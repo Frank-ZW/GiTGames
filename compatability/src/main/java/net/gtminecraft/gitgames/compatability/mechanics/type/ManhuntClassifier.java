@@ -19,4 +19,9 @@ public class ManhuntClassifier extends AbstractGameClassifier {
 				yield maxPlayers * 5 / 6;
 		};
 	}
+
+	@Override
+	public boolean validate(int maxPlayers) {
+		return maxPlayers >= 2 && maxPlayers <= 5;
+	}
 }

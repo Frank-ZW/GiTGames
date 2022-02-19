@@ -12,4 +12,9 @@ public class InactiveClassifier extends AbstractGameClassifier {
 	public int playerThreshold(int maxPlayers) {
 		return -1;
 	}
+
+	@Override
+	public boolean validate(int maxPlayers) {
+		return false;
+	}
 }
