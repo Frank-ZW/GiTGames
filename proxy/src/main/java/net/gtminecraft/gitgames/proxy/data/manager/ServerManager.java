@@ -19,7 +19,6 @@ import net.gtminecraft.gitgames.proxy.connection.PipelineBase;
 import net.gtminecraft.gitgames.proxy.data.MinigameServerData;
 import net.gtminecraft.gitgames.proxy.data.PlayerData;
 import net.gtminecraft.gitgames.proxy.data.ServerData;
-import net.gtminecraft.gitgames.proxy.util.StringUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -145,21 +144,11 @@ public class ServerManager {
 		return serverTypes.isEmpty() ? null : serverTypes.get(this.random.nextInt(serverTypes.size()));
 	}
 
-	public AbstractGameClassifier retrieveMinigame(@NotNull ProxiedPlayer player, String name, int maxPlayers) {
-		boolean valid = false;
-		AbstractGameClassifier type = switch (name.toLowerCase()) {
-			case "manhunt":
-				valid = maxPlayers == 1 ? player.hasPermission(String.format(StringUtil.SOLO_MINIGAME_COMMAND, "manhunt")) : maxPlayers >= 2 && maxPlayers <= 5;
-				yield GameClassifiers.MANHUNT;
-			case "spleef":
-				valid = maxPlayers > 1;
-				yield GameClassifiers.SPLEEF;
-			default:
-				yield GameClassifiers.INACTIVE;
-		};
-
-		if (!valid) {
-			player.sendMessage(new TextComponent(ChatColor.RED + type.getName() + "s with " + maxPlayers + " player are currently unsupported. To help the developer, consider making a small donation through our online web-store."));
+	public AbstractGameClassifier gameClassifier(@NotNull ProxiedPlayer player, String name, int maxPlayers) {
+		AbstractGameClassifier type = GameClassifiers.classifierByName(name);
+		if (!type.validate(maxPlayers)) {
+			player.sendMessage(new TextComponent(ChatColor.RED + type.getName() + "s with " + maxPlayers + " player" + (maxPlayers == 1 ? " is" : "s are") + " currently unsupported. To help the developer, consider making a small donation through our online web-store."));
+			return GameClassifiers.INACTIVE;
 		}
 
 		return type;
@@ -167,7 +156,7 @@ public class ServerManager {
 
 	public void queuePlayer(@NotNull PlayerData playerData, String name, int maxPlayers) {
 		ProxiedPlayer player = playerData.getPlayer();
-		AbstractGameClassifier type = this.retrieveMinigame(player, name, maxPlayers);
+		AbstractGameClassifier type = this.gameClassifier(player, name, maxPlayers);
 		if (GameClassifiers.INACTIVE.equals(type)) {
 			return;
 		}
